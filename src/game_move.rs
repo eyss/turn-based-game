@@ -233,12 +233,12 @@ where
 
     validate_it_is_authors_turn(&next_move.author_address, &maybe_last_move, &game.players)?;
 
-    let mut game_state = G::initial();
+    let mut game_state = G::initial(&game.players.clone());
     let mut parsed_moves: Vec<M> = Vec::new();
 
     for game_move in ordered_moves {
         let move_content = parse_move::<M>(game_move.game_move)?;
-        game_state.apply_move(move_content.clone());
+        game_state.apply_move(&game_move.author_address, &move_content);
         parsed_moves.push(move_content);
     }
 
@@ -254,10 +254,9 @@ where
 
     let move_content = parse_move::<M>(next_move.game_move)?;
 
-    match game_state.is_valid(move_content) {
-        true => Ok(()),
-        false => Err(ZomeApiError::from(String::from("Move is not valid"))),
-    }
+    game_state.is_valid(move_content)?;
+
+    Ok(())
 }
 
 /**

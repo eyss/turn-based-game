@@ -45,13 +45,13 @@ where
   fn max_players() -> Option<usize>;
 
   // Constructs the initial state for the game
-  fn initial() -> Self;
+  fn initial(players: &Vec<Address>) -> Self;
 
   // Returns whether the given movement is valid given the current game state
-  fn is_valid(self, game_move: M) -> bool;
+  fn is_valid(self, game_move: M) -> Result<(), String>;
 
   // Applies the move to the game object, transforming it
-  fn apply_move(&mut self, game_move: M) -> ();
+  fn apply_move(&mut self, author_address: &Address, game_move: &M) -> ();
 
   // Gets the winner for the game
   fn get_winner(&self, moves: &Vec<M>) -> Option<Address>;

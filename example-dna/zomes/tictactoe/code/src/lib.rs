@@ -14,10 +14,11 @@ use hdk::holochain_persistence_api::cas::content::Address;
 use hdk::prelude::*;
 use hdk_proc_macros::zome;
 use holochain_turn_based_game;
+use holochain_turn_based_game::GameEntry;
 
 mod tictactoe;
 
-use tictactoe::TicTacToe;
+use tictactoe::{TicTacToe, TicTacToeMove};
 
 #[zome]
 mod my_zome {
@@ -39,16 +40,11 @@ mod my_zome {
 
     #[entry_def]
     fn move_entry() -> ValidatingEntryType {
-        holochain_turn_based_game::move_entry::definition::<>()
+        holochain_turn_based_game::game_move::definition::<TicTacToe, TicTacToeMove>()
     }
 
     #[zome_fn("hc_public")]
-    fn get_agents_with_role(role_name: String) -> ZomeApiResult<Vec<Address>> {
-        holochain_roles::handlers::get_agents_with_role(&role_name)
-    }
-
-    #[zome_fn("hc_public")]
-    fn get_agent_roles(agent_address: Address) -> ZomeApiResult<Vec<String>> {
-        holochain_roles::handlers::get_agent_roles(&agent_address)
+    fn create_game(game: GameEntry) -> ZomeApiResult<Vec<Address>> {
+        holochain_turn_based_game::game::create_game(game)
     }
 }
