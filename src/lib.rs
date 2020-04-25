@@ -4,3 +4,6 @@ extern crate holochain_entry_utils;
 
 pub mod game;
 pub mod game_move;
+
+pub use game::{create_game, game_definition, get_game_winner};
+pub use game_move::{move_definition, create_move, get_last_move, get_moves, get_moves_entries};

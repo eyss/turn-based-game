@@ -37,7 +37,7 @@ const orchestrator = new Orchestrator({
   },
 });
 
-const { createGame, createMove } = require("./utils");
+const { createGame, createMove, getWinner } = require("./utils");
 
 orchestrator.registerScenario(
   "only progenitor can assign roles",
@@ -48,7 +48,7 @@ orchestrator.registerScenario(
     );
     const aliceAddress = alice.instance("tictactoe").agentAddress;
     const bobAddress = bob.instance("tictactoe").agentAddress;
-    
+
     let result = await createGame(alice)(aliceAddress);
     t.notOk(result.Ok);
     await s.consistency();
@@ -58,6 +58,9 @@ orchestrator.registerScenario(
     await s.consistency();
 
     let gameAddress = result.Ok;
+
+    result = await getWinner(alice)(gameAddress);
+    t.equal(result.Ok, undefined);
 
     result = await createMove(alice)(gameAddress, 0, 0);
     t.notOk(result.Ok);
@@ -87,6 +90,9 @@ orchestrator.registerScenario(
     result = await createMove(bob)(gameAddress, 0, 2);
     t.ok(result.Ok);
     await s.consistency();
+
+    result = await getWinner(alice)(gameAddress);
+    t.equal(result.Ok, bobAddress);
 
     result = await createMove(alice)(gameAddress, 2, 2);
     t.notOk(result.Ok);

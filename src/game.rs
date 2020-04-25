@@ -1,3 +1,5 @@
+use crate::game_move;
+use crate::game_move::MoveEntry;
 use hdk::prelude::*;
 use holochain_entry_utils::HolochainEntry;
 use std::collections::HashMap;
@@ -57,10 +59,14 @@ where
   fn apply_move(&mut self, game_move: &M, player_index: usize, author_address: &Address) -> ();
 
   // Gets the winner for the game
-  fn get_winner(&self, moves_with_author: &Vec<(Address, M)>, players: &Vec<Address>) -> Option<Address>;
+  fn get_winner(
+    &self,
+    moves_with_author: &Vec<(Address, M)>,
+    players: &Vec<Address>,
+  ) -> Option<Address>;
 }
 
-pub fn definition<G, M>() -> ValidatingEntryType
+pub fn game_definition<G, M>() -> ValidatingEntryType
 where
   G: Game<M>,
   M: TryFrom<JsonString> + Into<JsonString> + Clone,
@@ -90,6 +96,60 @@ where
   )
 }
 
+/** Public handlers */
+
+/**
+ * Creates the game
+ */
+pub fn create_game(game: GameEntry) -> ZomeApiResult<Address> {
+  hdk::commit_entry(&game.entry())
+}
+
+/**
+ * Gets the winner of the game
+ */
+pub fn get_game_winner<G, M>(game_address: &Address) -> ZomeApiResult<Option<Address>>
+where
+  G: Game<M>,
+  M: TryFrom<JsonString> + Into<JsonString> + Clone,
+{
+  let game: GameEntry = hdk::utils::get_as_type(game_address.clone())?;
+
+  let moves = game_move::get_moves_entries(&game_address)?;
+
+  compute_winner::<G, M>(game, moves)
+}
+
+/** Private helpers */
+
+/**
+ * Compute the state for the given game and moves
+ */
+pub(crate) fn compute_winner<G, M>(
+  game: GameEntry,
+  moves: Vec<MoveEntry>,
+) -> ZomeApiResult<Option<Address>>
+where
+  G: Game<M>,
+  M: TryFrom<JsonString> + Into<JsonString> + Clone,
+{
+  let mut game_state = G::initial(&game.players.clone());
+  let mut parsed_moves: Vec<(Address, M)> = Vec::new();
+
+  for (index, game_move) in moves.iter().enumerate() {
+    let move_content = game_move::parse_move::<M>(game_move.game_move.clone())?;
+    game_state.apply_move(
+      &move_content,
+      index % game.players.len(),
+      &game_move.author_address,
+    );
+
+    parsed_moves.push((game_move.author_address.clone(), move_content));
+  }
+
+  Ok(game_state.get_winner(&parsed_moves, &game.players))
+}
+
 /**
  * Validates the game, returning error if:
  *
@@ -109,11 +169,4 @@ fn validate_game_entry(game: GameEntry) -> ZomeApiResult<()> {
   }
 
   Ok(())
-}
-
-/**
- * Creates the game
- */
-pub fn create_game(game: GameEntry) -> ZomeApiResult<Address> {
-  hdk::commit_entry(&game.entry())
 }

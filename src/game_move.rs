@@ -18,7 +18,7 @@ impl HolochainEntry for MoveEntry {
     }
 }
 
-pub fn definition<G, M>() -> ValidatingEntryType
+pub fn move_definition<G, M>() -> ValidatingEntryType
 where
     G: Game<M>,
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
@@ -66,31 +66,6 @@ where
 /** Public handlers */
 
 /**
- * Returns the moves ordered following the previous_move_address
- *
- * Returns error if in any case the chain of moves is not valid
- */
-pub fn order_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEntry>> {
-    let mut ordered_moves: Vec<MoveEntry> = Vec::new();
-    
-    if moves.len() == 0 {
-        return Ok(ordered_moves);
-    }
-
-    // Find first move
-    let mut current_move = find_next_move(&None, moves)?;
-    ordered_moves.push(current_move.clone());
-
-    // Find next move until the vector is empty
-    while moves.len() > 0 {
-        current_move = find_next_move(&Some(current_move.address()?), moves)?;
-        ordered_moves.push(current_move.clone());
-    }
-
-    Ok(ordered_moves)
-}
-
-/**
  * Creates the next move for the given game, linking the game to the move
  */
 pub fn create_move<M>(
@@ -123,7 +98,7 @@ pub fn get_moves<M>(game_address: &Address) -> ZomeApiResult<Vec<M>>
 where
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
-    let moves = get_game_moves(&game_address)?;
+    let moves = get_moves_entries(&game_address)?;
 
     moves
         .iter()
@@ -134,20 +109,21 @@ where
 /**
  * Returns all the moves for the given game
  */
-pub fn get_game_moves(game_address: &Address) -> ZomeApiResult<Vec<MoveEntry>> {
-    hdk::utils::get_links_and_load_type(
+pub fn get_moves_entries(game_address: &Address) -> ZomeApiResult<Vec<MoveEntry>> {
+    let mut moves = hdk::utils::get_links_and_load_type(
         &game_address,
         LinkMatch::Exactly("game->move"),
         LinkMatch::Any,
-    )
+    )?;
+
+    order_moves(&mut moves)
 }
 
 /**
  * Returns the last move for the given game
  */
 pub fn get_last_move(game_address: &Address) -> ZomeApiResult<Option<Address>> {
-    let mut moves = get_game_moves(&game_address)?;
-    let ordered_moves = order_moves(&mut moves)?;
+    let ordered_moves = get_moves_entries(&game_address)?;
 
     match ordered_moves.last() {
         None => Ok(None),
@@ -156,6 +132,31 @@ pub fn get_last_move(game_address: &Address) -> ZomeApiResult<Option<Address>> {
 }
 
 /** Private helpers */
+
+/**
+ * Returns the moves ordered following the previous_move_address
+ *
+ * Returns error if in any case the chain of moves is not valid
+ */
+fn order_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEntry>> {
+    let mut ordered_moves: Vec<MoveEntry> = Vec::new();
+    
+    if moves.len() == 0 {
+        return Ok(ordered_moves);
+    }
+
+    // Find first move
+    let mut current_move = find_next_move(&None, moves)?;
+    ordered_moves.push(current_move.clone());
+
+    // Find next move until the vector is empty
+    while moves.len() > 0 {
+        current_move = find_next_move(&Some(current_move.address()?), moves)?;
+        ordered_moves.push(current_move.clone());
+    }
+
+    Ok(ordered_moves)
+}
 
 /**
  * Finds the next move for the given previous move and game,
@@ -243,9 +244,7 @@ where
         )));
     }
 
-    let mut moves: Vec<MoveEntry> = get_game_moves(&next_move.game_address)?;
-
-    let ordered_moves = order_moves(&mut moves)?;
+    let ordered_moves: Vec<MoveEntry> = get_moves_entries(&next_move.game_address)?;
 
     let maybe_last_move = ordered_moves.last();
 
@@ -285,7 +284,7 @@ where
 /**
  * Convert the serialized move into the struct
  */
-fn parse_move<M>(move_content: JsonString) -> ZomeApiResult<M>
+pub(crate) fn parse_move<M>(move_content: JsonString) -> ZomeApiResult<M>
 where
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
