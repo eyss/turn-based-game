@@ -1,164 +1,179 @@
-# holochain_roles
+# holochain_turn_based_game
 
-Generic holochain mixin to include administrator and dynamic roles in any holochain application, using the progenitor pattern.
+Generic holochain engine mixin to create turn based games in your holochain apps. These are games with a finite number of players, in which each player takes turns consecutively to play their turn.
 
-This mixin is built to target `hc v0.0.46-alpha1`. It also depends on the [holochain_anchors](https://github.com/holochain/holochain_anchors) to be present and configured.
-
-## Design
-
-Here is the design for this mixin: https://hackmd.io/6xfwfSVYSGeZe3vQ_-1cWw?view.
+This mixin is built to target `hc v0.0.47-alpha1`, and published on crates: https://crates.io/holochain_turn_based_game.
 
 ## Documentation
 
-Here you can find the documentation for this mixin: https://docs.rs/holochain_roles.
+Here you can find the documentation for this mixin: https://docs.rs/holochain_turn_based_game.
 
 ## Installation
 
 Add the following to your zomes cargo toml.
 
 ```
-holochain_anchors = { git = "https://github.com/holochain/holochain-anchors" }
-holochain_roles = { git = "https://github.com/eyss/holochain-roles" }
+holochain_roles = "0.1"
 ```
 
-> We can't publish to crates.io until the holochain_anchors dependency is also published.
+## Setup
 
-## Usage
+We're going to follow all the steps in order to create or turn based game, by using tic-tac-toe as an example (you can find the full hApp example in `example-dna`).
 
-### Setup
+### 1. Create your game state struct
 
-Add the anchor entry definition to your zome.
+You need to create a `struct` that represents the state of your game at any point in time. This struct will not be committed as an entry, so you don't need to optimize for memory or storage as far as the DHT goes.
 
 ```rust
- #[entry_def]
-fn anchor_def() -> ValidatingEntryType {
-    holochain_anchors::anchor_definition()
+#[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
+pub struct Piece {
+  pub x: usize,
+  pub y: usize,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
+pub struct TicTacToe {
+  pub player_1: Vec<Piece>,
+  pub player_2: Vec<Piece>,
 }
 ```
 
-Add the roles entry definition to your zome.
+### 2. Create your move type
+
+Next, we have to create a move type representing all the possible moves that a player can make when they play their turn. This is normally an enum outlining all the different possible move types, with all the necessary information about the move there. This struct **will** be committed to the DHT in a serialized form, so be careful not to load it with too much redundant information.
 
 ```rust
- #[entry_def]
-fn roles_def() -> ValidatingEntryType {
-    holochain_roles::role_assignment_entry_def()
+#[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
+pub enum TicTacToeMove {
+  Place(Piece),
+  Resign,
 }
 ```
 
-### Assign a role
+### 3. Implement the Game trait
 
-To assign a role, simply call the `assign_role` function:
-
-```rust
-#[zome_fn("hc_public")]
-fn some_other_public_function(agent_address: Address) {
-    let my_role_name = String::from("editor");
-
-    holochain_roles::handlers::assign_role(&my_role_name, &agent_address)?;
-    ...
-}
-```
-
-### Assign an administrator
-
-Only agents that have the administrator role or the progenitor of the DNA can assign or unassign roles.
-To assign an administrator role, call the `assign_role` function with the imported administrator role name:
+Next, we need to specify the behaviour of our game. This is done by implementing the `Game` trait:
 
 ```rust
-#[zome_fn("hc_public")]
-fn some_other_public_function(agent_address: Address) {
-    let my_role_name = String::from(holochain_roles::ADMIN_ROLE_NAME);
 
-    holochain_roles::handlers::assign_role(&my_role_name, &agent_address)?;
-    ...
-}
-```
+impl Game<TicTacToeMove> for TicTacToe {
+    // The minimum number of players that must participate for the game to be valid
+    // Return None if there is no limit
+    fn min_players() -> Option<usize> {
+        Some(2)
+    }
 
-### Check if user had a certain role in a certain moment in time
+    // The maximum number of players that must participate for the game to be valid
+    // Return None if there is no limit
+    fn max_players() -> Option<usize> {
+        Some(2)
+    }
 
-**Only use these functions in a validation rule**
+    // Constructs the initial state for the game
+    fn initial(players: &Vec<Address>) -> Self {
+        ...
+    }
+  
+    // Returns whether the given movement is valid given the current game state
+    fn is_valid(self, game_move: TicTacToeMove) -> Result<(), String> {
+        ...
+    }
 
-To check if a user has a certain role, you have two options:
+    // Applies the move to the game object, transforming it
+    fn apply_move(
+      &mut self,
+      game_move: &TicTacToeMove,
+      player_index: usize,
+      _author_address: &Address,
+    ) -> () {
+        ...
+    }
 
-- Use the validation `validate_required_role` function, which will return and error in case the user did not have the given role at the time they committed the entry:
-
-```rust
-validation: | _validation_data: hdk::EntryValidationData<MyEntry>| {
-    match _validation_data {
-        hdk::EntryValidationData::Create { validation_data } => {
-            holochain_roles::validaton::validate_require_role(&validation_data, String::from("editor"))?;
-
-            ...
-        }
+    // Gets the winner for the game
+    fn get_winner(
+      &self,
+      moves_with_author: &Vec<(Address, TicTacToeMove)>,
+      players: &Vec<Address>,
+    ) -> Option<Address> {
+        ...
     }
 }
 ```
 
-- Use the validation `had_agent_role` function:
+From now on, when calling most functions in the crate, we'll need to provide the game and move structs as type parameters so that the library can execute its functions.
+
+### 4. Add the game and move entry definitions
 
 ```rust
-validation: | _validation_data: hdk::EntryValidationData<MyEntry>| {
-    match _validation_data {
-        hdk::EntryValidationData::Create { entry, validation_data } => {
-            let agent_address = &validation_data.sources()[0];
-            let timestamp = &validation_data.package.chain_header.timestamp();
-            let is_agent_permitted_to_create_this_entry = holochain_roles::validaton::had_agent_role(&agent_address, String::from("editor"), timestamp)?;
+ #[entry_def]
+fn game_def() -> ValidatingEntryType {
+    holochain_turn_based_game::game_definition::<TicTacToe, TicTacToeMove>()
+}
 
-            if !is_agent_permitted_to_create_this_entry {
-                return Err(String::from("Only editors can create a new entry"));
-            }
-            ...
-
-        }
-    }
+ #[entry_def]
+fn move_def() -> ValidatingEntryType {
+    holochain_turn_based_game::move_definition::<TicTacToe, TicTacToeMove>()
 }
 ```
 
-### Check if user currently has a certain role
+## Play a game
 
-**This should not be used in a validation rule**
+### 1. Create a game
 
-To check if a user has a certain role, you can use the `has_agent_role` function:
+To create a game, call the `create_game` function:
 
 ```rust
 #[zome_fn("hc_public")]
-fn some_public_function(agent_address: Address) {
-   let is_agent_permitted_to_create_this_entry = holochain_roles::validaton::has_agent_role(&agent_address, String::from("editor"))?;
+fn create_game(rival: Address, timestamp: u32) -> ZomeApiResult<Address> {
+    let game = GameEntry {
+        players: vec![rival, hdk::AGENT_ADDRESS.clone()],
+        created_at: timestamp,
+    };
+
+    holochain_turn_based_game::create_game(game)
 }
 ```
 
-### Get all role assignments for an agent
+The order of the players in the vector will determine the order in which they have to move.
 
-To get all role assignments for a certain agent, you can use the validation `get_agent_roles` function:
+### 2. Make a move
+
+To create a move, call the `create_move` function:
 
 ```rust
 #[zome_fn("hc_public")]
-fn some_public_function(agent_address: Address) {
-    let roles: Vec<String> = holochain_roles::handlers::get_agent_roles(&agent_address)?;
+fn place_piece(game_address: Address, x: usize, y: usize) -> ZomeApiResult<Address> {
+    let game_move = TicTacToeMove::Place(Piece { x, y });
+
+    holochain_turn_based_game::create_move(&game_address, game_move)
 }
 ```
 
-### Get all agents that have a certain role assigned
+### 3. Get game state
 
-To get all role assignments for a certain agent, you can use the validation `get_agents_with_role` function:
+To get the moves that have been done during the game, call `get_game_moves`:
 
 ```rust
 #[zome_fn("hc_public")]
-fn some_public_function(role_name: String) {
-    let agents: Vec<Address> = holochain_roles::handlers::get_agents_with_role(&role_name)?;
+fn get_moves(game_address: Address) -> ZomeApiResult<Vec<TicTacToeMove>> {
+    holochain_turn_based_game::get_game_moves::<TicTacToe, TicTacToeMove>(&game_address)
 }
 ```
 
-### Unassign a role
-
-To unassign a role, simply call the `unassign_role` function:
+And to get the winner of the game, call `get_game_winner`:
 
 ```rust
 #[zome_fn("hc_public")]
-fn some_other_public_function(agent_address: Address) {
-    let my_role_name = String::from("editor");
+fn get_winner(game_address: Address) -> ZomeApiResult<Option<Address>> {
+    holochain_turn_based_game::get_game_winner::<TicTacToe, TicTacToeMove>(&game_address)
+}
+```
 
-    holochain_roles::handlers::unassign_role(&my_role_name, &agent_address)?;
-    ...
+To get the current game state, call `get_game_state`: 
+
+```rust
+#[zome_fn("hc_public")]
+fn get_game_state(game_address: Address) -> ZomeApiResult<TicTacToe> {
+    holochain_turn_based_game::get_game_state::<TicTacToe, TicTacToeMove>(&game_address)
 }
 ```

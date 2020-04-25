@@ -120,6 +120,32 @@ where
   compute_winner::<G, M>(game, moves)
 }
 
+/**
+ * Gets the current state of the game
+ */
+pub fn get_game_state<G, M>(game_address: &Address) -> ZomeApiResult<G>
+where
+  G: Game<M>,
+  M: TryFrom<JsonString> + Into<JsonString> + Clone,
+{
+  let game: GameEntry = hdk::utils::get_as_type(game_address.clone())?;
+
+  let moves = game_move::get_moves_entries(&game_address)?;
+
+  let mut game_state = G::initial(&game.players.clone());
+
+  for (index, game_move) in moves.iter().enumerate() {
+    let move_content = game_move::parse_move::<M>(game_move.game_move.clone())?;
+    game_state.apply_move(
+      &move_content,
+      index % game.players.len(),
+      &game_move.author_address,
+    );
+  }
+
+  Ok(game_state)
+}
+
 /** Private helpers */
 
 /**

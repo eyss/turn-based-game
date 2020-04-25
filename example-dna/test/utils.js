@@ -16,8 +16,14 @@ const getWinner = (caller) => (gameAddress, x, y) =>
     game_address: gameAddress,
   });
 
+const getState = (caller) => (gameAddress) =>
+  caller.call("tictactoe", "tictactoe", "get_geme_state", {
+    game_address: gameAddress,
+  });
+
 module.exports = {
   createGame,
   createMove,
   getWinner,
+  getState,
 };

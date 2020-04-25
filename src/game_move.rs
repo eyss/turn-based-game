@@ -68,14 +68,12 @@ where
 /**
  * Creates the next move for the given game, linking the game to the move
  */
-pub fn create_move<M>(
-    game_address: &Address,
-    game_move: M,
-    previous_move: &Option<Address>,
-) -> ZomeApiResult<Address>
+pub fn create_move<M>(game_address: &Address, game_move: M) -> ZomeApiResult<Address>
 where
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
+    let previous_move = get_last_move(&game_address)?;
+
     let move_json = game_move.into();
 
     let game_move = MoveEntry {
@@ -94,7 +92,7 @@ where
 /**
  * Get all the moves for the given game
  */
-pub fn get_moves<M>(game_address: &Address) -> ZomeApiResult<Vec<M>>
+pub fn get_game_moves<M>(game_address: &Address) -> ZomeApiResult<Vec<M>>
 where
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
@@ -140,7 +138,6 @@ pub fn get_last_move(game_address: &Address) -> ZomeApiResult<Option<Address>> {
  */
 fn order_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEntry>> {
     let mut ordered_moves: Vec<MoveEntry> = Vec::new();
-    
     if moves.len() == 0 {
         return Ok(ordered_moves);
     }
@@ -175,7 +172,8 @@ fn find_next_move(
         if next_move.previous_move_address == previous_move_address.clone() {
             if let Some(_) = move_index {
                 return Err(ZomeApiError::from(format!(
-                    "Bad number of next moves {:?} {:?}", moves, previous_move_address
+                    "Bad number of next moves {:?} {:?}",
+                    moves, previous_move_address
                 )));
             }
 
@@ -186,7 +184,8 @@ fn find_next_move(
     match move_index {
         Some(index) => Ok(moves.remove(index)),
         None => Err(ZomeApiError::from(format!(
-            "Bad number of next moves {:?} {:?}", moves, previous_move_address
+            "Bad number of next moves {:?} {:?}",
+            moves, previous_move_address
         ))),
     }
 }

@@ -37,7 +37,7 @@ const orchestrator = new Orchestrator({
   },
 });
 
-const { createGame, createMove, getWinner } = require("./utils");
+const { createGame, createMove, getWinner, getState } = require("./utils");
 
 orchestrator.registerScenario(
   "play a tictactoe game succeeds",
@@ -60,6 +60,9 @@ orchestrator.registerScenario(
     let gameAddress = result.Ok;
 
     result = await getWinner(alice)(gameAddress);
+    t.equal(result.Ok, null);
+
+    result = await getState(alice)(gameAddress);
     t.equal(result.Ok, null);
 
     result = await createMove(alice)(gameAddress, 0, 0);
@@ -93,6 +96,9 @@ orchestrator.registerScenario(
 
     result = await getWinner(alice)(gameAddress);
     t.equal(result.Ok, bobAddress);
+
+    result = await getState(alice)(gameAddress);
+    t.equal(result.Ok, null);
 
     result = await createMove(alice)(gameAddress, 2, 2);
     t.notOk(result.Ok);

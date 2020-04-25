@@ -56,12 +56,16 @@ mod my_zome {
     #[zome_fn("hc_public")]
     fn place_piece(game_address: Address, x: usize, y: usize) -> ZomeApiResult<Address> {
         let game_move = TicTacToeMove::Place(Piece { x, y });
-        let previous_move = holochain_turn_based_game::get_last_move(&game_address)?;
-        holochain_turn_based_game::create_move(&game_address, game_move, &previous_move)
+        holochain_turn_based_game::create_move(&game_address, game_move)
     }
 
     #[zome_fn("hc_public")]
     fn get_winner(game_address: Address) -> ZomeApiResult<Option<Address>> {
         holochain_turn_based_game::get_game_winner::<TicTacToe, TicTacToeMove>(&game_address)
+    }
+
+    #[zome_fn("hc_public")]
+    fn get_game_state(game_address: Address) -> ZomeApiResult<TicTacToe> {
+        holochain_turn_based_game::get_game_state::<TicTacToe, TicTacToeMove>(&game_address)
     }
 }
