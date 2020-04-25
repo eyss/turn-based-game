@@ -15,7 +15,6 @@ impl HolochainEntry for GameEntry {
   }
 }
 
-
 pub trait Game<M>: Sized
 where
   M: TryFrom<JsonString> + Into<JsonString> + Clone,
@@ -52,10 +51,10 @@ where
   fn is_valid(self, game_move: M) -> Result<(), String>;
 
   // Applies the move to the game object, transforming it
-  fn apply_move(&mut self, author_address: &Address, game_move: &M) -> ();
+  fn apply_move(&mut self, game_move: &M, player_index: usize, author_address: &Address) -> ();
 
   // Gets the winner for the game
-  fn get_winner(&self, moves_with_author: &Vec<(Address, M)>) -> Option<Address>;
+  fn get_winner(&self, moves_with_author: &Vec<(Address, M)>, players: &Vec<Address>) -> Option<Address>;
 }
 
 pub fn definition<G, M>() -> ValidatingEntryType

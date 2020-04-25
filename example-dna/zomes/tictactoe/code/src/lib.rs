@@ -18,7 +18,7 @@ use holochain_turn_based_game::game::GameEntry;
 
 mod tictactoe;
 
-use tictactoe::{TicTacToe, TicTacToeMove};
+use tictactoe::{Piece, TicTacToe, TicTacToeMove};
 
 #[zome]
 mod my_zome {
@@ -46,5 +46,12 @@ mod my_zome {
     #[zome_fn("hc_public")]
     fn create_game(game: GameEntry) -> ZomeApiResult<Address> {
         holochain_turn_based_game::game::create_game(game)
+    }
+
+    #[zome_fn("hc_public")]
+    fn place_piece(game_address: Address, x: usize, y: usize) -> ZomeApiResult<Address> {
+        let game_move = TicTacToeMove::Place(Piece { x, y });
+        let previous_move = holochain_turn_based_game::game_move::get_last_move(&game_address)?;
+        holochain_turn_based_game::game_move::create_move(&game_address, game_move, &previous_move)
     }
 }

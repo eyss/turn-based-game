@@ -1,13 +1,11 @@
 use hdk::prelude::*;
-use holochain_turn_based_game::{game::Game, game_move::AuthoredMove};
+use holochain_turn_based_game::game::Game;
 
 pub const BOARD_SIZE: usize = 3;
 
 #[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
 pub struct TicTacToe {
-  pub player_1_address: Address,
   pub player_1: Vec<Piece>,
-  pub player_2_address: Address,
   pub player_2: Vec<Piece>,
 }
 
@@ -51,10 +49,8 @@ impl Game<TicTacToeMove> for TicTacToe {
     Some(2)
   }
 
-  fn initial(players: &Vec<Address>) -> Self {
+  fn initial(_players: &Vec<Address>) -> Self {
     TicTacToe {
-      player_1_address: players[0],
-      player_2_address: players[1],
       player_1: vec![],
       player_2: vec![],
     }
@@ -72,27 +68,34 @@ impl Game<TicTacToeMove> for TicTacToe {
     }
   }
 
-  fn apply_move(&mut self, author_address: &Address, game_move: &TicTacToeMove) -> () {
+  fn apply_move(
+    &mut self,
+    game_move: &TicTacToeMove,
+    player_index: usize,
+    _author_address: &Address,
+  ) -> () {
     if let TicTacToeMove::Place(piece) = game_move {
-      if author_address.clone() == self.player_1_address {
-        self.player_1.push(piece.clone());
-      } else {
-        self.player_2.push(piece.clone());
+      match player_index {
+        0 => self.player_1.push(piece.clone()),
+        1 => self.player_2.push(piece.clone()),
+        _ => {}
       }
     }
   }
 
-  fn get_winner(&self, moves_with_author: &Vec<(Address, TicTacToeMove)>) -> Option<Address> {
+  fn get_winner(
+    &self,
+    moves_with_author: &Vec<(Address, TicTacToeMove)>,
+    players: &Vec<Address>,
+  ) -> Option<Address> {
     if let Some((author_address, TicTacToeMove::Resign)) = moves_with_author.last() {
-      match self.player_1_address == author_address.clone() {
-        true => {
-          return Some(self.player_2_address);
-        }
-        false => {
-          return Some(self.player_1_address);
-        }
-      }
+      return players
+        .iter()
+        .find(|a| a.clone().clone() != author_address.clone())
+        .map(|a| a.clone());
     }
+
+    let board = self.to_dense();
 
     // check if this resulted in a player victory
     let mut diag_down = 0;
@@ -128,9 +131,9 @@ impl Game<TicTacToeMove> for TicTacToe {
     || diag_down == (-1 * BOARD_SIZE as i32);
     || diag_up == (-1 * BOARD_SIZE as i32);
     if player_1_victory {
-      return Some(self.player_1_address);
+      return Some(players[0].clone());
     } else if player_2_victory {
-      return Some(self.player_2_address);
+      return Some(players[1].clone());
     }
     return None;
   }

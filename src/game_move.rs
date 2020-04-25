@@ -70,7 +70,7 @@ where
  *
  * Returns error if in any case the chain of moves is not valid
  */
-pub fn get_ordered_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEntry>> {
+pub fn order_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEntry>> {
     let mut ordered_moves: Vec<MoveEntry> = Vec::new();
 
     // Find first move
@@ -92,7 +92,7 @@ pub fn get_ordered_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEn
 pub fn create_move<M>(
     game_address: &Address,
     game_move: M,
-    current_move: &Option<Address>,
+    previous_move: &Option<Address>,
 ) -> ZomeApiResult<Address>
 where
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
@@ -103,7 +103,7 @@ where
         game_address: game_address.clone(),
         author_address: hdk::AGENT_ADDRESS.clone(),
         game_move: move_json,
-        previous_move_address: current_move.clone(),
+        previous_move_address: previous_move.clone(),
     };
 
     let move_address = hdk::commit_entry(&game_move.entry())?;
@@ -136,6 +136,19 @@ pub fn get_game_moves(game_address: &Address) -> ZomeApiResult<Vec<MoveEntry>> {
         LinkMatch::Exactly("game->move"),
         LinkMatch::Any,
     )
+}
+
+/**
+ * Returns the last move for the given game
+ */
+pub fn get_last_move(game_address: &Address) -> ZomeApiResult<Option<Address>> {
+    let mut moves = get_game_moves(&game_address)?;
+    let ordered_moves = order_moves(&mut moves)?;
+
+    match ordered_moves.last() {
+        None => Ok(None),
+        Some(last_move) => last_move.address().map(|a| Some(a)),
+    }
 }
 
 /** Private helpers */
@@ -227,7 +240,7 @@ where
 
     let mut moves: Vec<MoveEntry> = get_game_moves(&next_move.game_address)?;
 
-    let ordered_moves = get_ordered_moves(&mut moves)?;
+    let ordered_moves = order_moves(&mut moves)?;
 
     let maybe_last_move = ordered_moves.last();
 
@@ -236,15 +249,19 @@ where
     let mut game_state = G::initial(&game.players.clone());
     let mut parsed_moves: Vec<(Address, M)> = Vec::new();
 
-    for game_move in ordered_moves {
-        let move_content = parse_move::<M>(game_move.game_move)?;
-        game_state.apply_move(&game_move.author_address, &move_content);
+    for (index, game_move) in ordered_moves.iter().enumerate() {
+        let move_content = parse_move::<M>(game_move.game_move.clone())?;
+        game_state.apply_move(
+            &move_content,
+            index % game.players.len(),
+            &game_move.author_address,
+        );
 
-        parsed_moves.push((game_move.author_address, move_content));
+        parsed_moves.push((game_move.author_address.clone(), move_content));
     }
 
     // Get the winner
-    let winner = game_state.get_winner(&parsed_moves);
+    let winner = game_state.get_winner(&parsed_moves, &game.players);
 
     if let Some(winner_address) = winner {
         return Err(ZomeApiError::from(format!(
