@@ -2,11 +2,11 @@
 
 Generic holochain engine mixin to create turn based games in your holochain apps. These are games with a finite number of players, in which each player takes turns consecutively to play their turn.
 
-This mixin is built to target `hc v0.0.47-alpha1`, and published on crates: https://crates.io/holochain_turn_based_game.
+This mixin is built to target `hc v0.0.47-alpha1`, and published on crates: https://crates.io/crates/holochain_turn_based_game.
 
 ## Documentation
 
-Here you can find the documentation for this mixin: https://docs.rs/holochain_turn_based_game.
+Here you can find the documentation for this mixin: https://docs.rs/holochain-turn-based-game.
 
 ## Installation
 
