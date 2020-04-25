@@ -63,7 +63,7 @@ orchestrator.registerScenario(
     t.equal(result.Ok, null);
 
     result = await getState(alice)(gameAddress);
-    t.equal(result.Ok, null);
+    t.deepEqual(result.Ok, { player_1: [], player_2: [] });
 
     result = await createMove(alice)(gameAddress, 0, 0);
     t.notOk(result.Ok);
@@ -98,7 +98,7 @@ orchestrator.registerScenario(
     t.equal(result.Ok, bobAddress);
 
     result = await getState(alice)(gameAddress);
-    t.equal(result.Ok, null);
+    t.deepEqual(result.Ok, { player_1: [ { x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 } ], player_2: [ { x: 1, y: 0 }, { x: 1, y: 1 } ] });
 
     result = await createMove(alice)(gameAddress, 2, 2);
     t.notOk(result.Ok);

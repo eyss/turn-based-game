@@ -17,7 +17,7 @@ const getWinner = (caller) => (gameAddress, x, y) =>
   });
 
 const getState = (caller) => (gameAddress) =>
-  caller.call("tictactoe", "tictactoe", "get_geme_state", {
+  caller.call("tictactoe", "tictactoe", "get_game_state", {
     game_address: gameAddress,
   });
 
