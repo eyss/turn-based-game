@@ -66,7 +66,7 @@ where
   M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
   entry!(
-      name: "game",
+      name: GameEntry::entry_type(),
       description: "Represents an occurence of a game between several agents",
       sharing: Sharing::Public,
       validation_package: || {
