@@ -81,6 +81,11 @@ impl Game<TicTacToeMove> for TicTacToe {
       }
     }
   }
+
+  fn get_winner(&self, moves: &Vec<TicTacToeMove>) -> Option<Address> {
+    if let Some(TicTacToeMove::Resign) = moves.last() {}
+    self
+  }
 }
 
 impl TicTacToe {

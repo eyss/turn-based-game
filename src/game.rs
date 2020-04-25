@@ -15,6 +15,14 @@ impl HolochainEntry for GameEntry {
   }
 }
 
+pub struct AuthoredMove<M>
+where
+  M: TryFrom<JsonString> + Into<JsonString> + Clone,
+{
+  pub game_move: M,
+  pub author_address: Address,
+}
+
 pub trait Game<M>: Sized
 where
   M: TryFrom<JsonString> + Into<JsonString> + Clone,
@@ -54,7 +62,7 @@ where
   fn apply_move(&mut self, author_address: &Address, game_move: &M) -> ();
 
   // Gets the winner for the game
-  fn get_winner(&self, moves: &Vec<M>) -> Option<Address>;
+  fn get_winner(&self, moves: &Vec<AuthoredMove<M>>) -> Option<Address>;
 }
 
 pub fn definition<G, M>() -> ValidatingEntryType
@@ -107,7 +115,6 @@ fn validate_game_entry(game: GameEntry) -> ZomeApiResult<()> {
 
   Ok(())
 }
-
 
 /**
  * Creates the game

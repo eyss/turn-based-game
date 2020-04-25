@@ -1,3 +1,4 @@
+use crate::game::AuthoredMove;
 use crate::game::Game;
 use crate::game::GameEntry;
 use hdk::prelude::*;
@@ -234,12 +235,17 @@ where
     validate_it_is_authors_turn(&next_move.author_address, &maybe_last_move, &game.players)?;
 
     let mut game_state = G::initial(&game.players.clone());
-    let mut parsed_moves: Vec<M> = Vec::new();
+    let mut parsed_moves: Vec<AuthoredMove<M>> = Vec::new();
 
     for game_move in ordered_moves {
         let move_content = parse_move::<M>(game_move.game_move)?;
         game_state.apply_move(&game_move.author_address, &move_content);
-        parsed_moves.push(move_content);
+
+        let authored_move = AuthoredMove {
+            author_address: game_move.author_address,
+            game_move: move_content,
+        };
+        parsed_moves.push(authored_move);
     }
 
     // Get the winner
