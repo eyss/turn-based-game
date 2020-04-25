@@ -1,0 +1,24 @@
+[package]
+name = "holochain_turn_based_game"
+version = "0.1.0"
+authors = ["guillem <guillem.cordoba@gmail.com>"]
+edition = "2018"
+description = "A crate to help hApps add roles to their DNA using the progenitor pattern"
+repository = "https://github.com/eyss/holochain-turn-based-game"
+documentation = "https://docs.rs/holochain-turn-based-game"
+license-file = "LICENSE"
+exclude = [
+    "example-dna/*",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "^1.0"
+serde_json = { version = "^1.0", features = ["preserve_order"] }
+serde_derive = "^1.0"
+hdk = "=0.0.47-alpha1"
+hdk_proc_macros = "=0.0.47-alpha1"
+holochain_wasm_utils = "=0.0.47-alpha1"
+holochain_json_derive = "^0.0"
+holochain_entry_utils = "^0"
