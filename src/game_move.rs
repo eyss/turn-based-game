@@ -24,7 +24,7 @@ where
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     entry!(
-        name: "move",
+        name: MoveEntry::entry_type(),
         description: "A move by an agent in a game",
         sharing: Sharing::Public,
         validation_package: || {
@@ -50,7 +50,7 @@ where
 
         links: [
           from!(
-                "game",
+                GameEntry::entry_type(),
                 link_type: "game->move",
                 validation_package: || {
                     hdk::ValidationPackageDefinition::Entry
@@ -72,6 +72,10 @@ where
  */
 pub fn order_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEntry>> {
     let mut ordered_moves: Vec<MoveEntry> = Vec::new();
+    
+    if moves.len() == 0 {
+        return Ok(ordered_moves);
+    }
 
     // Find first move
     let mut current_move = find_next_move(&None, moves)?;
@@ -79,7 +83,7 @@ pub fn order_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEntry>> 
 
     // Find next move until the vector is empty
     while moves.len() > 0 {
-        current_move = find_next_move(&current_move.previous_move_address, moves)?;
+        current_move = find_next_move(&Some(current_move.address()?), moves)?;
         ordered_moves.push(current_move.clone());
     }
 
@@ -169,18 +173,19 @@ fn find_next_move(
     for (index, next_move) in moves.iter().enumerate() {
         if next_move.previous_move_address == previous_move_address.clone() {
             if let Some(_) = move_index {
-                return Err(ZomeApiError::from(String::from(
-                    "Bad number of first moves",
+                return Err(ZomeApiError::from(format!(
+                    "Bad number of next moves {:?} {:?}", moves, previous_move_address
                 )));
             }
 
             move_index = Some(index);
         }
     }
+
     match move_index {
         Some(index) => Ok(moves.remove(index)),
-        None => Err(ZomeApiError::from(String::from(
-            "Bad number of first moves",
+        None => Err(ZomeApiError::from(format!(
+            "Bad number of next moves {:?} {:?}", moves, previous_move_address
         ))),
     }
 }
