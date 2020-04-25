@@ -15,6 +15,9 @@ impl HolochainEntry for GameEntry {
   }
 }
 
+/**
+ * Game trait that your game struct has to implement
+ */
 pub trait Game<M>: Sized
 where
   M: TryFrom<JsonString> + Into<JsonString> + Clone,

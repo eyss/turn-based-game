@@ -44,7 +44,12 @@ mod my_zome {
     }
 
     #[zome_fn("hc_public")]
-    fn create_game(game: GameEntry) -> ZomeApiResult<Address> {
+    fn create_game(rival: Address, timestamp: u32) -> ZomeApiResult<Address> {
+        let game = GameEntry {
+            players: vec![rival, hdk::AGENT_ADDRESS.clone()],
+            created_at: timestamp,
+        };
+
         holochain_turn_based_game::game::create_game(game)
     }
 
