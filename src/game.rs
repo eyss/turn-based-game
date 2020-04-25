@@ -1,6 +1,7 @@
 use hdk::prelude::*;
-use std::collections::HashMap;
 use holochain_entry_utils::HolochainEntry;
+use std::collections::HashMap;
+use std::convert::TryFrom;
 
 #[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
 pub struct GameEntry {
@@ -14,7 +15,10 @@ impl HolochainEntry for GameEntry {
   }
 }
 
-pub trait Game {
+pub trait Game<M>: Sized
+where
+  M: TryFrom<JsonString> + Into<JsonString>,
+{
   // Validates that the entry for the given game
   // By default only looks at the number of players for the game
   fn validate_entry(game: &GameEntry) -> ZomeApiResult<()> {
@@ -42,11 +46,21 @@ pub trait Game {
 
   // Constructs the initial state for the game
   fn initial() -> Self;
+
+  // Returns whether the given movement is valid given the current game state
+  fn is_valid(self, game_move: M) -> bool;
+
+  // Applies the move to the game object, transforming it
+  fn execute(&mut self, game_move: M) -> ();
+
+  // Gets the winner for the game
+  fn get_winner(&self, moves: Vec<M>) -> Option<Address>;
 }
 
-pub fn definition<G>() -> ValidatingEntryType
+pub fn definition<G, M>() -> ValidatingEntryType
 where
-  G: Game,
+  G: Game<M>,
+  M: TryFrom<JsonString> + Into<JsonString>,
 {
   entry!(
       name: "game",
@@ -78,7 +92,7 @@ where
  *
  * - There is a repeated player in the game
  */
-pub fn validate_game_entry(game: GameEntry) -> ZomeApiResult<()> {
+fn validate_game_entry(game: GameEntry) -> ZomeApiResult<()> {
   let mut players_map: HashMap<Address, bool> = HashMap::new();
 
   for player in game.players.iter() {
@@ -92,4 +106,12 @@ pub fn validate_game_entry(game: GameEntry) -> ZomeApiResult<()> {
   }
 
   Ok(())
+}
+
+
+/**
+ * Creates the game
+ */
+pub fn create_game(game: GameEntry) -> ZomeApiResult<Address> {
+  hdk::commit_entry(&game.entry())
 }

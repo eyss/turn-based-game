@@ -18,21 +18,10 @@ impl HolochainEntry for MoveEntry {
     }
 }
 
-pub trait Move<G>: TryFrom<JsonString> + Into<JsonString>
+pub fn definition<G, M>() -> ValidatingEntryType
 where
-    G: Game,
-{
-    // Returns whether the given movement is valid given the current game state
-    fn is_valid(self, game: G) -> bool;
-
-    // Applies the move to the game object, transforming it
-    fn execute(self, game: G) -> G;
-}
-
-pub fn definition<M, G>() -> ValidatingEntryType
-where
-    M: Move<G>,
-    G: Game,
+    G: Game<M>,
+    M: TryFrom<JsonString> + Into<JsonString>,
 {
     entry!(
         name: "move",
@@ -49,7 +38,7 @@ where
                         return Err(String::from("Move has to be signed by its author"));
                     }
 
-                    validate_move::<M, G>(entry)?;
+                    validate_move::<G, M>(entry)?;
 
                     Ok(())
                 },
@@ -74,61 +63,7 @@ where
     )
 }
 
-/**
- * Validates the move, getting the game
- */
-pub fn validate_move<M, G>(next_move: MoveEntry) -> ZomeApiResult<()>
-where
-    M: Move<G>,
-    G: Game,
-{
-    let game: GameEntry = hdk::utils::get_as_type(next_move.game_address.clone())?;
-
-    if !game.players.contains(&next_move.author_address) {
-        return Err(ZomeApiError::from(String::from(
-            "The author of the move is not playing the game",
-        )));
-    }
-
-    let mut moves: Vec<MoveEntry> = hdk::utils::get_links_and_load_type(
-        &next_move.game_address,
-        LinkMatch::Exactly("game->move"),
-        LinkMatch::Any,
-    )?;
-
-    let ordered_moves = get_ordered_moves(&mut moves)?;
-
-    let maybe_last_move = ordered_moves.last();
-
-    validate_it_is_authors_turn(&next_move.author_address, &maybe_last_move, &game.players)?;
-
-    let mut game_state = G::initial();
-
-    for game_move in ordered_moves {
-        let move_content = parse_move::<M, G>(game_move.game_move)?;
-        game_state = move_content.execute(game_state);
-    }
-
-    let move_content = parse_move::<M, G>(next_move.game_move)?;
-
-    match move_content.is_valid(game_state) {
-        true => Ok(()),
-        false => Err(ZomeApiError::from(String::from("Move is not valid"))),
-    }
-}
-
-pub fn parse_move<M, G>(move_content: JsonString) -> ZomeApiResult<M>
-where
-    M: Move<G>,
-    G: Game,
-{
-    match M::try_from(move_content) {
-        Ok(game_move) => Ok(game_move),
-        Err(_) => {
-            return Err(ZomeApiError::from(String::from("Bad move")));
-        }
-    }
-}
+/** Public handlers */
 
 /**
  * Returns the moves ordered following the previous_move_address
@@ -150,6 +85,57 @@ pub fn get_ordered_moves(moves: &mut Vec<MoveEntry>) -> ZomeApiResult<Vec<MoveEn
 
     Ok(ordered_moves)
 }
+
+/**
+ * Creates the next move for the given game, linking the game to the move
+ */
+pub fn create_move<M>(
+    game_address: &Address,
+    game_move: M,
+    current_move: &Option<Address>,
+) -> ZomeApiResult<Address>
+where
+    M: TryFrom<JsonString> + Into<JsonString>,
+{
+    let move_json = game_move.into();
+
+    let game_move = MoveEntry {
+        game_address: game_address.clone(),
+        author_address: hdk::AGENT_ADDRESS.clone(),
+        game_move: move_json,
+        previous_move_address: current_move.clone(),
+    };
+
+    let move_address = hdk::commit_entry(&game_move.entry())?;
+    hdk::link_entries(&game_address, &move_address, "game->move", "")?;
+
+    Ok(move_address)
+}
+
+/**
+ * Get all the moves for the given game
+ */
+pub fn get_moves<M>(game_address: &Address) -> ZomeApiResult<Vec<M>>
+where
+    M: TryFrom<JsonString> + Into<JsonString>,
+{
+    let moves = get_game_moves(&game_address)?;
+
+    moves.iter().map(|m| parse_move(m.game_move.clone())).collect()
+}
+
+/**
+ * Returns all the moves for the given game
+ */
+pub fn get_game_moves(game_address: &Address) -> ZomeApiResult<Vec<MoveEntry>> {
+    hdk::utils::get_links_and_load_type(
+        &game_address,
+        LinkMatch::Exactly("game->move"),
+        LinkMatch::Any,
+    )
+}
+
+/** Private helpers */
 
 /**
  * Finds the next move for the given previous move and game,
@@ -218,4 +204,60 @@ fn validate_it_is_authors_turn(
     }
 
     Ok(())
+}
+
+/**
+ * Validates the move, getting the game
+ */
+fn validate_move<G, M>(next_move: MoveEntry) -> ZomeApiResult<()>
+where
+    G: Game<M>,
+    M: TryFrom<JsonString> + Into<JsonString>,
+{
+    let game: GameEntry = hdk::utils::get_as_type(next_move.game_address.clone())?;
+
+    if !game.players.contains(&next_move.author_address) {
+        return Err(ZomeApiError::from(String::from(
+            "The author of the move is not playing the game",
+        )));
+    }
+
+    let mut moves: Vec<MoveEntry> = get_game_moves(&next_move.game_address)?;
+
+    let ordered_moves = get_ordered_moves(&mut moves)?;
+
+    let maybe_last_move = ordered_moves.last();
+
+    validate_it_is_authors_turn(&next_move.author_address, &maybe_last_move, &game.players)?;
+
+    let mut game_state = G::initial();
+
+    for game_move in ordered_moves {
+        let move_content = parse_move::<M>(game_move.game_move)?;
+        game_state.execute(move_content);
+    }
+
+    // Get the winner
+
+    let move_content = parse_move::<M>(next_move.game_move)?;
+
+    match game_state.is_valid(move_content) {
+        true => Ok(()),
+        false => Err(ZomeApiError::from(String::from("Move is not valid"))),
+    }
+}
+
+/**
+ * Convert the serialized move into the struct
+ */
+fn parse_move<M>(move_content: JsonString) -> ZomeApiResult<M>
+where
+    M: TryFrom<JsonString> + Into<JsonString>,
+{
+    match M::try_from(move_content) {
+        Ok(game_move) => Ok(game_move),
+        Err(_) => {
+            return Err(ZomeApiError::from(String::from("Bad move")));
+        }
+    }
 }
