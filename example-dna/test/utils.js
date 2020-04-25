@@ -5,7 +5,7 @@ const createGame = (caller) => (rival) =>
   });
 
 const createMove = (caller) => (gameAddress, x, y) =>
-  caller.call("tictactoe", "tictactoe", "create_game", {
+  caller.call("tictactoe", "tictactoe", "place_piece", {
     game_address: gameAddress,
     x,
     y,
