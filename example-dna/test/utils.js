@@ -12,7 +12,7 @@ const createMove = (caller) => (gameAddress, x, y) =>
   });
 
 const getWinner = (caller) => (gameAddress, x, y) =>
-  caller.call("tictactoe", "tictactoe", "get_game_winner", {
+  caller.call("tictactoe", "tictactoe", "get_winner", {
     game_address: gameAddress,
   });
 
