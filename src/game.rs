@@ -51,7 +51,7 @@ where
   fn is_valid(self, game_move: M) -> bool;
 
   // Applies the move to the game object, transforming it
-  fn execute(&mut self, game_move: M) -> ();
+  fn apply_move(&mut self, game_move: M) -> ();
 
   // Gets the winner for the game
   fn get_winner(&self, moves: &Vec<M>) -> Option<Address>;

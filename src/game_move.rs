@@ -238,7 +238,7 @@ where
 
     for game_move in ordered_moves {
         let move_content = parse_move::<M>(game_move.game_move)?;
-        game_state.execute(move_content.clone());
+        game_state.apply_move(move_content.clone());
         parsed_moves.push(move_content);
     }
 
