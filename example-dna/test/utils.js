@@ -1,7 +1,7 @@
 const createGame = (caller) => (rival) =>
   caller.call("tictactoe", "tictactoe", "create_game", {
     rival,
-    timestamp: Date.now() / 1000,
+    timestamp: Math.floor(Date.now() / 1000),
   });
 
 const createMove = (caller) => (gameAddress, x, y) =>

@@ -48,8 +48,12 @@ orchestrator.registerScenario(
     );
     const aliceAddress = alice.instance("tictactoe").agentAddress;
     const bobAddress = bob.instance("tictactoe").agentAddress;
+    
+    let result = await createGame(alice)(aliceAddress);
+    t.notOk(result.Ok);
+    await s.consistency();
 
-    let result = await createGame(alice)(bobAddress);
+    result = await createGame(alice)(bobAddress);
     t.ok(result.Ok);
     await s.consistency();
 
