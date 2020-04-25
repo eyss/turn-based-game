@@ -14,7 +14,7 @@ use hdk::holochain_persistence_api::cas::content::Address;
 use hdk::prelude::*;
 use hdk_proc_macros::zome;
 use holochain_turn_based_game;
-use holochain_turn_based_game::GameEntry;
+use holochain_turn_based_game::game::GameEntry;
 
 mod tictactoe;
 
@@ -35,7 +35,7 @@ mod my_zome {
 
     #[entry_def]
     fn game_entry() -> ValidatingEntryType {
-        holochain_turn_based_game::game::definition::<TicTacToe>()
+        holochain_turn_based_game::game::definition::<TicTacToe, TicTacToeMove>()
     }
 
     #[entry_def]
@@ -44,7 +44,7 @@ mod my_zome {
     }
 
     #[zome_fn("hc_public")]
-    fn create_game(game: GameEntry) -> ZomeApiResult<Vec<Address>> {
+    fn create_game(game: GameEntry) -> ZomeApiResult<Address> {
         holochain_turn_based_game::game::create_game(game)
     }
 }

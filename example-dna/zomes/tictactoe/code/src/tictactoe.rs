@@ -1,5 +1,5 @@
 use hdk::prelude::*;
-use holochain_turn_based_game::game::Game;
+use holochain_turn_based_game::{game::Game, game_move::AuthoredMove};
 
 pub const BOARD_SIZE: usize = 3;
 
@@ -35,7 +35,7 @@ impl Piece {
   }
 
   fn is_empty(&self, game_state: &TicTacToe) -> Result<(), String> {
-    match board_sparse_to_dense(game_state)[self.x][self.y] == 0 {
+    match game_state.to_dense()[self.x][self.y] == 0 {
       true => Ok(()),
       false => Err("A piece already exists at that position.".to_string()),
     }
@@ -63,8 +63,8 @@ impl Game<TicTacToeMove> for TicTacToe {
   fn is_valid(self, game_move: TicTacToeMove) -> Result<(), String> {
     match game_move {
       TicTacToeMove::Place(piece) => {
-        pos.is_in_bounds()?;
-        pos.is_empty(&game_state)?;
+        piece.is_in_bounds()?;
+        piece.is_empty(&self)?;
 
         Ok(())
       }
@@ -74,27 +74,75 @@ impl Game<TicTacToeMove> for TicTacToe {
 
   fn apply_move(&mut self, author_address: &Address, game_move: &TicTacToeMove) -> () {
     if let TicTacToeMove::Place(piece) = game_move {
-      if author_address == self.player_1_address {
-        self.player_1.push(piece);
+      if author_address.clone() == self.player_1_address {
+        self.player_1.push(piece.clone());
       } else {
-        self.player_2.push(piece);
+        self.player_2.push(piece.clone());
       }
     }
   }
 
-  fn get_winner(&self, moves: &Vec<TicTacToeMove>) -> Option<Address> {
-    if let Some(TicTacToeMove::Resign) = moves.last() {}
-    self
+  fn get_winner(&self, moves_with_author: &Vec<(Address, TicTacToeMove)>) -> Option<Address> {
+    if let Some((author_address, TicTacToeMove::Resign)) = moves_with_author.last() {
+      match self.player_1_address == author_address.clone() {
+        true => {
+          return Some(self.player_2_address);
+        }
+        false => {
+          return Some(self.player_1_address);
+        }
+      }
+    }
+
+    // check if this resulted in a player victory
+    let mut diag_down = 0;
+    let mut diag_up = 0;
+    let mut across = [0; 3];
+    let mut down = [0; 3];
+    for x in 0..BOARD_SIZE {
+      for y in 0..BOARD_SIZE {
+        let delta = match board[x][y] {
+          1 => 1,
+          2 => -1,
+          _ => 0,
+        };
+        down[x] += delta;
+        across[y] += delta;
+        // diag down e.g. \
+        if x == y {
+          diag_down += delta;
+        }
+        //diag up  e.g. /
+        else if x == (BOARD_SIZE - 1 - y) {
+          diag_up += delta;
+        }
+      }
+    }
+    let player_1_victory = across.iter().any(|e| *e == (BOARD_SIZE as i32))
+      || down.iter().any(|e| *e == (BOARD_SIZE as i32));
+    || diag_down == (BOARD_SIZE as i32);
+    || diag_up == (BOARD_SIZE as i32);
+
+    let player_2_victory = across.iter().any(|e| *e == (-1 * BOARD_SIZE as i32))
+      || down.iter().any(|e| *e == (-1 * BOARD_SIZE as i32));
+    || diag_down == (-1 * BOARD_SIZE as i32);
+    || diag_up == (-1 * BOARD_SIZE as i32);
+    if player_1_victory {
+      return Some(self.player_1_address);
+    } else if player_2_victory {
+      return Some(self.player_2_address);
+    }
+    return None;
   }
 }
 
 impl TicTacToe {
   pub fn to_dense(&self) -> [[u8; 8]; 8] {
     let mut board = [[0u8; 8]; 8];
-    self.player_1.pieces.iter().for_each(|piece| {
+    self.player_1.iter().for_each(|piece| {
       board[piece.x][piece.y] = 1;
     });
-    self.player_2.pieces.iter().for_each(|piece| {
+    self.player_2.iter().for_each(|piece| {
       board[piece.x][piece.y] = 2;
     });
     board
