@@ -40,7 +40,7 @@ const orchestrator = new Orchestrator({
 const { createGame, createMove, getWinner } = require("./utils");
 
 orchestrator.registerScenario(
-  "only progenitor can assign roles",
+  "play a tictactoe game succeeds",
   async (s, t) => {
     const { alice, bob } = await s.players(
       { alice: conductorConfig, bob: conductorConfig },
@@ -60,7 +60,7 @@ orchestrator.registerScenario(
     let gameAddress = result.Ok;
 
     result = await getWinner(alice)(gameAddress);
-    t.equal(result.Ok, undefined);
+    t.equal(result.Ok, null);
 
     result = await createMove(alice)(gameAddress, 0, 0);
     t.notOk(result.Ok);
