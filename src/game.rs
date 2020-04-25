@@ -17,7 +17,7 @@ impl HolochainEntry for GameEntry {
 
 pub trait Game<M>: Sized
 where
-  M: TryFrom<JsonString> + Into<JsonString>,
+  M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
   // Validates that the entry for the given game
   // By default only looks at the number of players for the game
@@ -54,13 +54,13 @@ where
   fn execute(&mut self, game_move: M) -> ();
 
   // Gets the winner for the game
-  fn get_winner(&self, moves: Vec<M>) -> Option<Address>;
+  fn get_winner(&self, moves: &Vec<M>) -> Option<Address>;
 }
 
 pub fn definition<G, M>() -> ValidatingEntryType
 where
   G: Game<M>,
-  M: TryFrom<JsonString> + Into<JsonString>,
+  M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
   entry!(
       name: "game",

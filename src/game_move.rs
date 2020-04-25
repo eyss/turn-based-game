@@ -21,7 +21,7 @@ impl HolochainEntry for MoveEntry {
 pub fn definition<G, M>() -> ValidatingEntryType
 where
     G: Game<M>,
-    M: TryFrom<JsonString> + Into<JsonString>,
+    M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     entry!(
         name: "move",
@@ -95,7 +95,7 @@ pub fn create_move<M>(
     current_move: &Option<Address>,
 ) -> ZomeApiResult<Address>
 where
-    M: TryFrom<JsonString> + Into<JsonString>,
+    M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     let move_json = game_move.into();
 
@@ -117,11 +117,14 @@ where
  */
 pub fn get_moves<M>(game_address: &Address) -> ZomeApiResult<Vec<M>>
 where
-    M: TryFrom<JsonString> + Into<JsonString>,
+    M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     let moves = get_game_moves(&game_address)?;
 
-    moves.iter().map(|m| parse_move(m.game_move.clone())).collect()
+    moves
+        .iter()
+        .map(|m| parse_move(m.game_move.clone()))
+        .collect()
 }
 
 /**
@@ -212,7 +215,7 @@ fn validate_it_is_authors_turn(
 fn validate_move<G, M>(next_move: MoveEntry) -> ZomeApiResult<()>
 where
     G: Game<M>,
-    M: TryFrom<JsonString> + Into<JsonString>,
+    M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     let game: GameEntry = hdk::utils::get_as_type(next_move.game_address.clone())?;
 
@@ -231,13 +234,23 @@ where
     validate_it_is_authors_turn(&next_move.author_address, &maybe_last_move, &game.players)?;
 
     let mut game_state = G::initial();
+    let mut parsed_moves: Vec<M> = Vec::new();
 
     for game_move in ordered_moves {
         let move_content = parse_move::<M>(game_move.game_move)?;
-        game_state.execute(move_content);
+        game_state.execute(move_content.clone());
+        parsed_moves.push(move_content);
     }
 
     // Get the winner
+    let winner = game_state.get_winner(&parsed_moves);
+
+    if let Some(winner_address) = winner {
+        return Err(ZomeApiError::from(format!(
+            "Game is already finished: {} is the winner",
+            winner_address
+        )));
+    }
 
     let move_content = parse_move::<M>(next_move.game_move)?;
 
@@ -252,7 +265,7 @@ where
  */
 fn parse_move<M>(move_content: JsonString) -> ZomeApiResult<M>
 where
-    M: TryFrom<JsonString> + Into<JsonString>,
+    M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     match M::try_from(move_content) {
         Ok(game_move) => Ok(game_move),
