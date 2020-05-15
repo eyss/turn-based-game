@@ -1,6 +1,6 @@
 [package]
 name = "holochain_turn_based_game"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["guillem <guillem.cordoba@gmail.com>"]
 edition = "2018"
 description = "A crate to help hApps add roles to their DNA using the progenitor pattern"
@@ -22,3 +22,7 @@ hdk_proc_macros = "=0.0.47-alpha1"
 holochain_wasm_utils = "=0.0.47-alpha1"
 holochain_json_derive = "^0.0"
 holochain_entry_utils = "^0"
+futures = "=0.3.2"
+futures-util = "=0.3.2"
+futures-macro = "=0.3.2"
+

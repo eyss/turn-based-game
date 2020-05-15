@@ -105,7 +105,7 @@ where
                         hdk::LinkValidationData::LinkAdd { validation_data, link } => {
                             let author = validation_data.package.chain_header.provenances()[0].source();
 
-                            let game: GameEntry = hdk::utils::get_as_type(link.link.base().clone())?;
+                            let game: GameEntry = hdk::utils::get_as_type(link.link.target().clone())?;
 
                             match game.players.contains(&author) {
                                 true => Ok(()),

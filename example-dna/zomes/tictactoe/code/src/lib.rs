@@ -65,6 +65,11 @@ mod my_zome {
     }
 
     #[zome_fn("hc_public")]
+    fn get_agent_games(agent_address: Address) -> ZomeApiResult<Vec<Address>> {
+        holochain_turn_based_game::get_agent_games(&agent_address)
+    }
+
+    #[zome_fn("hc_public")]
     fn get_game_state(game_address: Address) -> ZomeApiResult<TicTacToe> {
         holochain_turn_based_game::get_game_state::<TicTacToe, TicTacToeMove>(&game_address)
     }
