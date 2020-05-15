@@ -21,7 +21,13 @@ const getState = (caller) => (gameAddress) =>
     game_address: gameAddress,
   });
 
+const getAgentGames = (caller) => (agentAddress) =>
+  caller.call("tictactoe", "tictactoe", "get_agent_games", {
+    agent_address: agentAddress,
+  });
+
 module.exports = {
+  getAgentGames,
   createGame,
   createMove,
   getWinner,
