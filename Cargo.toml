@@ -1,6 +1,6 @@
 [package]
 name = "holochain_turn_based_game"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["guillem <guillem.cordoba@gmail.com>"]
 edition = "2018"
 description = "A crate to help hApps add roles to their DNA using the progenitor pattern"

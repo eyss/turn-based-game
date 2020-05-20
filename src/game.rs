@@ -8,7 +8,7 @@ use std::convert::TryFrom;
 #[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
 pub struct GameEntry {
     pub players: Vec<Address>,
-    pub created_at: u32,
+    pub created_at: u64,
 }
 
 impl HolochainEntry for GameEntry {
