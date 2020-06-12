@@ -120,12 +120,12 @@ fn move_def() -> ValidatingEntryType {
 ### 5. Add a receive callback to emit a signal when an opponent has moved
 
 ``` rust
-    #[receive]
-    fn receive(sender_address: Address, message: String) -> String {
-        let result = holochain_turn_based_game::handle_receive_move(sender_address, message);
+#[receive]
+fn receive(sender_address: Address, message: String) -> String {
+    let result = holochain_turn_based_game::handle_receive_move(sender_address, message);
 
-        JsonString::from(result).to_string()
-    }
+    JsonString::from(result).to_string()
+}
 ```
 
 ## Play a game
