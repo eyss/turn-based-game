@@ -1,6 +1,9 @@
-use crate::game::Game;
-use crate::game::GameEntry;
+use crate::{
+    game::{GameEntry, TurnBasedGame},
+    signal,
+};
 use hdk::prelude::*;
+use hdk::AGENT_ADDRESS;
 use holochain_entry_utils::HolochainEntry;
 use std::convert::TryFrom;
 
@@ -20,7 +23,7 @@ impl HolochainEntry for MoveEntry {
 
 pub fn move_definition<G, M>() -> ValidatingEntryType
 where
-    G: Game<M>,
+    G: TurnBasedGame<M>,
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     entry!(
@@ -78,13 +81,15 @@ where
 
     let game_move = MoveEntry {
         game_address: game_address.clone(),
-        author_address: hdk::AGENT_ADDRESS.clone(),
+        author_address: AGENT_ADDRESS.clone(),
         game_move: move_json,
         previous_move_address: previous_move.clone(),
     };
 
-    let move_address = hdk::commit_entry(&game_move.entry())?;
+    let move_address = hdk::commit_entry(&game_move.clone().entry())?;
     hdk::link_entries(&game_address, &move_address, "game->move", "")?;
+
+    signal::send_move_signal(&game_address, &game_move)?;
 
     Ok(move_address)
 }
@@ -232,7 +237,7 @@ fn validate_it_is_authors_turn(
  */
 fn validate_move<G, M>(next_move: MoveEntry) -> ZomeApiResult<()>
 where
-    G: Game<M>,
+    G: TurnBasedGame<M>,
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     let game: GameEntry = hdk::utils::get_as_type(next_move.game_address.clone())?;
@@ -250,7 +255,6 @@ where
     validate_it_is_authors_turn(&next_move.author_address, &maybe_last_move, &game.players)?;
 
     let mut game_state = G::initial(&game.players.clone());
-    let mut parsed_moves: Vec<(Address, M)> = Vec::new();
 
     for (index, game_move) in ordered_moves.iter().enumerate() {
         let move_content = parse_move::<M>(game_move.game_move.clone())?;
@@ -259,12 +263,10 @@ where
             index % game.players.len(),
             &game_move.author_address,
         );
-
-        parsed_moves.push((game_move.author_address.clone(), move_content));
     }
 
     // Get the winner
-    let winner = game_state.get_winner(&parsed_moves, &game.players);
+    let winner = game_state.get_winner(&game.players);
 
     if let Some(winner_address) = winner {
         return Err(ZomeApiError::from(format!(

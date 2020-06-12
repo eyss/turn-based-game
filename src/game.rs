@@ -20,7 +20,7 @@ impl HolochainEntry for GameEntry {
 /**
  * Game trait that your game struct has to implement
  */
-pub trait Game<M>: Sized
+pub trait TurnBasedGame<M>: Sized
 where
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
@@ -61,14 +61,13 @@ where
     // Gets the winner for the game
     fn get_winner(
         &self,
-        moves_with_author: &Vec<(Address, M)>,
         players: &Vec<Address>,
     ) -> Option<Address>;
 }
 
 pub fn game_definition<G, M>() -> ValidatingEntryType
 where
-    G: Game<M>,
+    G: TurnBasedGame<M>,
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     entry!(
@@ -140,7 +139,7 @@ pub fn create_game(game: GameEntry) -> ZomeApiResult<Address> {
  */
 pub fn get_game_winner<G, M>(game_address: &Address) -> ZomeApiResult<Option<Address>>
 where
-    G: Game<M>,
+    G: TurnBasedGame<M>,
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     let game: GameEntry = hdk::utils::get_as_type(game_address.clone())?;
@@ -155,7 +154,7 @@ where
  */
 pub fn get_game_state<G, M>(game_address: &Address) -> ZomeApiResult<G>
 where
-    G: Game<M>,
+    G: TurnBasedGame<M>,
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     let game: GameEntry = hdk::utils::get_as_type(game_address.clone())?;
@@ -199,11 +198,10 @@ pub(crate) fn compute_winner<G, M>(
     moves: Vec<MoveEntry>,
 ) -> ZomeApiResult<Option<Address>>
 where
-    G: Game<M>,
+    G: TurnBasedGame<M>,
     M: TryFrom<JsonString> + Into<JsonString> + Clone,
 {
     let mut game_state = G::initial(&game.players.clone());
-    let mut parsed_moves: Vec<(Address, M)> = Vec::new();
 
     for (index, game_move) in moves.iter().enumerate() {
         let move_content = game_move::parse_move::<M>(game_move.game_move.clone())?;
@@ -213,10 +211,9 @@ where
             &game_move.author_address,
         );
 
-        parsed_moves.push((game_move.author_address.clone(), move_content));
     }
 
-    Ok(game_state.get_winner(&parsed_moves, &game.players))
+    Ok(game_state.get_winner(&game.players))
 }
 
 /**

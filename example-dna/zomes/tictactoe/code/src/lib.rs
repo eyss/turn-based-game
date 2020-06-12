@@ -44,7 +44,7 @@ mod my_zome {
     }
 
     #[zome_fn("hc_public")]
-    fn create_game(rival: Address, timestamp: u32) -> ZomeApiResult<Address> {
+    fn create_game(rival: Address, timestamp: u64) -> ZomeApiResult<Address> {
         let game = GameEntry {
             players: vec![rival, hdk::AGENT_ADDRESS.clone()],
             created_at: timestamp,
@@ -72,5 +72,12 @@ mod my_zome {
     #[zome_fn("hc_public")]
     fn get_game_state(game_address: Address) -> ZomeApiResult<TicTacToe> {
         holochain_turn_based_game::get_game_state::<TicTacToe, TicTacToeMove>(&game_address)
+    }
+
+    #[receive]
+    fn receive(sender_address: Address, message: String) -> String {
+        let result = holochain_turn_based_game::handle_receive_move(sender_address, message);
+
+        JsonString::from(result).to_string()
     }
 }

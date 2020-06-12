@@ -37,7 +37,13 @@ const orchestrator = new Orchestrator({
   },
 });
 
-const { createGame, createMove, getAgentGames, getWinner, getState } = require("./utils");
+const {
+  createGame,
+  createMove,
+  getAgentGames,
+  getWinner,
+  getState,
+} = require("./utils");
 
 orchestrator.registerScenario(
   "play a tictactoe game succeeds",
@@ -69,7 +75,11 @@ orchestrator.registerScenario(
     t.equal(result.Ok, null);
 
     result = await getState(alice)(gameAddress);
-    t.deepEqual(result.Ok, { player_1: [], player_2: [] });
+    t.deepEqual(result.Ok, {
+      player_1: [],
+      player_2: [],
+      player_resigned: null,
+    });
 
     result = await createMove(alice)(gameAddress, 0, 0);
     t.notOk(result.Ok);
@@ -104,7 +114,18 @@ orchestrator.registerScenario(
     t.equal(result.Ok, bobAddress);
 
     result = await getState(alice)(gameAddress);
-    t.deepEqual(result.Ok, { player_1: [ { x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 } ], player_2: [ { x: 1, y: 0 }, { x: 1, y: 1 } ] });
+    t.deepEqual(result.Ok, {
+      player_1: [
+        { x: 0, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: 2 },
+      ],
+      player_2: [
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+      ],
+      player_resigned: null,
+    });
 
     result = await createMove(alice)(gameAddress, 2, 2);
     t.notOk(result.Ok);

@@ -4,6 +4,12 @@ extern crate holochain_entry_utils;
 
 pub mod game;
 pub mod game_move;
+pub mod signal;
 
-pub use game::{Game, create_game, get_game_state, game_definition, get_game_winner, get_agent_games};
-pub use game_move::{move_definition, create_move, get_last_move, get_game_moves, get_moves_entries};
+pub use game::{
+    create_game, game_definition, get_agent_games, get_game_state, get_game_winner, TurnBasedGame,
+};
+pub use game_move::{
+    create_move, get_game_moves, get_last_move, get_moves_entries, move_definition,
+};
+pub use signal::handle_receive_move;
