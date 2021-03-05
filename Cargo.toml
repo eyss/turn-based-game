@@ -14,5 +14,8 @@ version = "0.2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+derive_more = "0"
+serde = "1"
+
 chrono = {version = "0.4.19", features = ["serde"]}
 hdk = {git = "https://github.com/holochain/holochain.git", rev = "5f1d6f4", package = "hdk"}

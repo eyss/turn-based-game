@@ -38,7 +38,7 @@ where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
 {
-    let game = get_game(game_hash)?;
+    let game = get_game(game_hash.clone())?;
     let game_state = get_game_state::<G, M>(game_hash)?;
 
     Ok(game_state.get_winner(&game.players))
@@ -52,13 +52,13 @@ where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
 {
-    let moves = game_move::handlers::get_moves_entries(game_hash)?;
-    let game = get_game(game_hash)?;
+    let moves = game_move::handlers::get_moves_entries(game_hash.clone())?;
+    let game = get_game(game_hash.clone())?;
 
     let mut game_state = G::initial(&game.players.clone());
 
-    for (index, game_move) in moves.iter().enumerate() {
-        let move_content = M::try_from(game_move.game_move)
+    for (_index, game_move) in moves.iter().enumerate() {
+        let move_content = M::try_from(game_move.game_move.clone())
             .or(Err(WasmError::Guest("Coulnt't convert game move".into())))?;
         game_state.apply_move(&move_content, &game_move.author_pub_key)?;
     }

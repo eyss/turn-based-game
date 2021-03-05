@@ -35,7 +35,7 @@ where
 
     let move_hash = hash_entry(&game_move)?;
 
-    create_link(game_hash, move_hash, game_to_move_tag())?;
+    create_link(game_hash.clone(), move_hash.clone(), game_to_move_tag())?;
 
     signal::send_move_signal(game_hash, game_move)?;
 
@@ -70,7 +70,7 @@ pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<MoveEntry>> {
         .into_inner()
         .into_iter()
         .map(|link| {
-            let element = get(link.target, GetOptions::default())?
+            let element = get(link.target.clone(), GetOptions::default())?
                 .ok_or(WasmError::Guest("Couldn't get move".into()))?;
             let move_entry = element
                 .entry()
@@ -104,21 +104,21 @@ fn order_moves(moves: &mut Vec<(EntryHash, MoveEntry)>) -> ExternResult<Vec<Move
     let mut first_move: Option<EntryHash> = None;
 
     for move_entry in moves {
-        if let Some(previous_move) = move_entry.1.previous_move_hash {
+        if let Some(previous_move) = move_entry.1.previous_move_hash.clone() {
             if next_moves_map.contains_key(&previous_move) {
                 return Err(WasmError::Guest(
                     "There are two moves pointing to the same next move".into(),
                 ));
             }
 
-            next_moves_map.insert(previous_move, move_entry.0);
+            next_moves_map.insert(previous_move, move_entry.0.clone());
         } else {
             if let Some(_) = first_move {
                 return Err(WasmError::Guest(
                     "There are two first moves in this list".into(),
                 ));
             }
-            first_move = Some(move_entry.0);
+            first_move = Some(move_entry.0.clone());
         }
 
         if moves_map.contains_key(&move_entry.0) {
@@ -127,7 +127,7 @@ fn order_moves(moves: &mut Vec<(EntryHash, MoveEntry)>) -> ExternResult<Vec<Move
             ));
         }
 
-        moves_map.insert(move_entry.0, move_entry.1);
+        moves_map.insert(move_entry.0.clone(), move_entry.1.clone());
     }
 
     match first_move {

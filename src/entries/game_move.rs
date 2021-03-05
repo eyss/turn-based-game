@@ -99,7 +99,7 @@ where
 
         let mut game_state = G::initial(&game.players.clone());
 
-        for (index, game_move) in ordered_moves.iter().enumerate() {
+        for (_index, game_move) in ordered_moves.iter().enumerate() {
             let move_content = M::try_from(game_move.game_move.clone())
                 .or(Err(WasmError::Guest("Could not deserialize move".into())))?;
             game_state.apply_move(&move_content, &game_move.author_pub_key)?;
