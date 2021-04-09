@@ -4,7 +4,7 @@ Generic holochain engine mixin to create turn based games in your holochain apps
 
 This is an update from the previous version of this engine which can be found in https://github.com/holochain-devcamp/generic-game, coded by https://github.com/willemolding.
 
-This mixin is built to target `hc v0.0.47-alpha1` , and published on crates: https://crates.io/crates/holochain_turn_based_game.
+This mixin is built to target `hdk v0.0.100` , and published on crates: https://crates.io/crates/holochain_turn_based_game.
 
 ## Documentation
 
