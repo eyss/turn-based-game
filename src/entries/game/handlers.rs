@@ -1,4 +1,5 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
+use game_move::GameMoveEntry;
 use hdk::prelude::*;
 
 use crate::{entries::game_move, turn_based_game::TurnBasedGame};
@@ -55,15 +56,7 @@ where
     let moves = game_move::handlers::get_moves_entries(game_hash.clone())?;
     let game = get_game(game_hash.clone())?;
 
-    let mut game_state = G::initial(&game.players.clone());
-
-    for (_index, game_move) in moves.iter().enumerate() {
-        let move_content = M::try_from(game_move.game_move.clone())
-            .or(Err(WasmError::Guest("Coulnt't convert game move".into())))?;
-        game_state.apply_move(&move_content, &game_move.author_pub_key)?;
-    }
-
-    Ok(game_state)
+    build_game_state(&game, moves)
 }
 
 pub fn get_game(game_hash: EntryHash) -> ExternResult<GameEntry> {
@@ -74,4 +67,51 @@ pub fn get_game(game_hash: EntryHash) -> ExternResult<GameEntry> {
         .entry()
         .to_app_option()?
         .ok_or(WasmError::Guest("Couldn't deserialize game entry".into()))
+}
+
+pub(crate) fn build_game_state<G, M>(
+    game_entry: &GameEntry,
+    moves: Vec<GameMoveEntry>,
+) -> ExternResult<G>
+where
+    G: TurnBasedGame<M>,
+    M: TryFrom<SerializedBytes>,
+{
+    let mut game_state = G::initial(&game_entry.players.clone());
+
+    for (_index, game_move) in moves.iter().enumerate() {
+        apply_move(&mut game_state, &game_entry, game_move)?;
+    }
+    return Ok(game_state);
+}
+
+pub(crate) fn apply_move<G, M>(
+    game_state: &mut G,
+    game_entry: &GameEntry,
+    game_move: &GameMoveEntry,
+) -> ExternResult<()>
+where
+    G: TurnBasedGame<M>,
+    M: TryFrom<SerializedBytes>,
+{
+    let move_content = M::try_from(game_move.game_move.clone())
+        .or(Err(WasmError::Guest("Coulnt't convert game move".into())))?;
+
+    let author_index = game_entry
+        .players
+        .iter()
+        .enumerate()
+        .find_map(|(index, player_address)| {
+            if game_move.author_pub_key == player_address.clone() {
+                return Some(index);
+            } else {
+                return None;
+            }
+        })
+        .ok_or(WasmError::Guest(
+            "Unreachable: this player is not playing this game".into(),
+        ))?;
+    game_state.apply_move(&move_content, &game_entry.players, author_index)?;
+
+    Ok(())
 }

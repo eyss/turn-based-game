@@ -1,10 +1,15 @@
-import { Orchestrator, Config, InstallAgentsHapps } from "@holochain/tryorama";
+import {
+  Orchestrator,
+  Config,
+  InstallAgentsHapps,
+  Player,
+} from "@holochain/tryorama";
 import path from "path";
 
 const conductorConfig = Config.gen();
 
 // Construct proper paths for your DNAs
-const exercise = path.join(__dirname, "../../exercise.dna.gz");
+const tictactoe = path.join(__dirname, "../../workdir/tictactoe-test.dna");
 
 // create an InstallAgentsHapps array with your DNAs to tell tryorama what
 // to install into the conductor.
@@ -12,49 +17,140 @@ const installation: InstallAgentsHapps = [
   // agent 0
   [
     // happ 0
-    [exercise],
+    [tictactoe],
+  ],
+  [
+    // happ 0
+    [tictactoe],
   ],
 ];
+
+const createGame = (caller) => (rival) =>
+  caller.call("tictactoe", "create_game", rival);
+
+const createMove = (caller) => (gameHash, previousMoveHash, x, y) =>
+  caller.call("tictactoe", "place_piece", {
+    game_hash: gameHash,
+    previous_move_hash: previousMoveHash,
+    x,
+    y,
+  });
+
+const getWinner = (caller) => (gameHash) =>
+  caller.call("tictactoe", "get_winner", gameHash);
+
+const getState = (caller) => (gameHash) =>
+  caller.call("tictactoe", "get_game_state", gameHash);
 
 const sleep = (ms) =>
   new Promise((resolve) => setTimeout(() => resolve(null), ms));
 
 const orchestrator = new Orchestrator();
 
-orchestrator.registerScenario(
-  "add and retrieve a book",
-  async (s, t) => {
-    const [alice] = await s.players([conductorConfig]);
+orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
+  const [player]: Player[] = await s.players([conductorConfig]);
 
-    // install your happs into the coductors and destructuring the returned happ data using the same
-    // array structure as you created in your installation array.
-    const [[alice_common]] = await alice.installAgentsHapps(installation);
+  // install your happs into the coductors and destructuring the returned happ data using the same
+  // array structure as you created in your installation array.
+  const [[alice_common], [bob_common]] = await player.installAgentsHapps(
+    installation
+  );
 
-    let entryHash = await alice_common.cells[0].call(
-      "exercise",
-      "add_book",
-      {
-        title: "Sovereign Accountable Commons",
-        content: "A Sovereign Accountable Commons (SAC) is akin to idea of a Decentralized Autonomous Organizations (DAO) on Ethereum but the underlying technology is fundamentally different, as SACs are built on Ceptr and Holochain. http://ceptr.org/projects/sovereign",
-      }
-    );
-    console.log(JSON.stringify(entryHash)); // trying to understand what I'm getting back from the zome
-    console.log(entryHash);
-/* 
-    t.ok(entryHash, "test add book");
+  const alice = alice_common.cells[0];
+  const bob = bob_common.cells[0];
 
-    let book = await alice_common.cells[0].call(
-      "exercise",
-      "get_book",
-      entryHash // the return valued is, I believe an array, so I'm guessing this is the right way to serialize is to string
-      // {   // I got confused into thinking you always needed an object
-      //   value: entryHash.toString('hex'),
-      // }
-    );
-    console.log(JSON.stringify(book))
+  const aliceAddress = await alice.call("tictactoe", "who_am_i", null);
+  const bobAddress = await bob.call("tictactoe", "who_am_i", null);
 
-    t.ok(book, "test get book"); // */
+  let result;
+  let lastMoveHash;
+  try {
+    result = await createGame(alice)(aliceAddress);
+    t.ok(false);
+  } catch (e) {
+    t.ok(true);
   }
-);
+
+  result = await createGame(alice)(bobAddress);
+  t.ok(result);
+  await sleep(100);
+
+  let gameAddress = result;
+
+  result = await getWinner(alice)(gameAddress);
+  t.equal(result, null);
+
+  result = await getState(alice)(gameAddress);
+  t.deepEqual(result, {
+    player_1: [],
+    player_2: [],
+    player_resigned: null,
+  });
+
+  try {
+    result = await createMove(alice)(gameAddress, null, 0, 0);
+    t.ok(false);
+  } catch (e) {
+    t.ok(true);
+  }
+
+  try {
+    result = await createMove(bob)(gameAddress, null, 4, 0);
+    t.ok(false);
+  } catch (e) {
+    t.ok(true);
+  }
+
+  lastMoveHash = await createMove(bob)(gameAddress, null, 0, 0);
+  t.ok(lastMoveHash);
+  await sleep(1000);
+
+  try {
+    result = await createMove(alice)(gameAddress, lastMoveHash, 0, 0);
+    t.ok(false);
+  } catch (e) {
+    t.ok(true);
+  }
+
+  lastMoveHash = await createMove(alice)(gameAddress, lastMoveHash, 1, 0);
+  t.ok(lastMoveHash);
+  await sleep(1000);
+
+  lastMoveHash = await createMove(bob)(gameAddress, lastMoveHash, 0, 1);
+  t.ok(lastMoveHash); // Fail
+  await sleep(1000);
+
+  lastMoveHash = await createMove(alice)(gameAddress, lastMoveHash, 1, 1);
+  t.ok(lastMoveHash);
+  await sleep(1000);
+
+  lastMoveHash = await createMove(bob)(gameAddress, lastMoveHash, 0, 2);
+  t.ok(lastMoveHash);
+  await sleep(3000);
+
+  result = await getWinner(alice)(gameAddress);
+  t.equal(result, bobAddress);
+
+  result = await getState(alice)(gameAddress);
+  t.deepEqual(result, {
+    player_1: [
+      { x: 0, y: 0 },
+      { x: 0, y: 1 },
+      { x: 0, y: 2 },
+    ],
+    player_2: [
+      { x: 1, y: 0 },
+      { x: 1, y: 1 },
+    ],
+    player_resigned: null,
+  });
+
+  try {
+    result = await createMove(alice)(gameAddress, lastMoveHash, 2, 2);
+    t.ok(false);
+  } catch (e) {
+    t.ok(true);
+  }
+});
 
 orchestrator.run();

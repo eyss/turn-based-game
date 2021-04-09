@@ -3,15 +3,16 @@ use std::convert::TryFrom;
 
 use crate::turn_based_game::TurnBasedGame;
 
-use self::handlers::get_moves_entries;
-
-use super::game::GameEntry;
+use super::game::{
+    handlers::{apply_move, build_game_state},
+    GameEntry,
+};
 
 pub mod handlers;
 
-#[hdk_entry(id = "game_move")]
+#[hdk_entry(id = "game_move_entry")]
 #[derive(Clone)]
-pub struct MoveEntry {
+pub struct GameMoveEntry {
     pub game_hash: EntryHash,
     pub author_pub_key: AgentPubKey,
     pub game_move: SerializedBytes,
@@ -21,9 +22,9 @@ pub struct MoveEntry {
 /**
  * Validate that it's the turn of the author of the move
  */
- fn validate_it_is_authors_turn(
+fn validate_it_is_authors_turn(
     author_pub_key: &AgentPubKey,
-    maybe_last_move: &Option<&MoveEntry>,
+    maybe_last_move: &Option<&GameMoveEntry>,
     players: &Vec<AgentPubKey>,
 ) -> ExternResult<()> {
     let maybe_last_player_index = match maybe_last_move {
@@ -58,14 +59,16 @@ pub struct MoveEntry {
 /**
  * Validates the move, getting the game
  */
-pub fn validate_move<G, M>(validate_data: ValidateData) -> ExternResult<ValidateCallbackResult>
+pub fn validate_game_move_entry<G, M>(
+    validate_data: ValidateData,
+) -> ExternResult<ValidateCallbackResult>
 where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
 {
     let author = validate_data.element.header().author();
 
-    let move_entry: MoveEntry = validate_data
+    let move_entry: GameMoveEntry = validate_data
         .element
         .entry()
         .to_app_option()?
@@ -91,19 +94,34 @@ where
             ));
         }
 
-        let ordered_moves: Vec<MoveEntry> = get_moves_entries(move_entry.game_hash)?;
+        let mut maybe_last_move_hash: Option<EntryHash> = move_entry.previous_move_hash.clone();
+        let mut ordered_moves: Vec<GameMoveEntry> = Vec::new();
+
+        while let Some(last_move_hash) = maybe_last_move_hash {
+            let maybe_move_element = get(last_move_hash.clone(), GetOptions::content())?;
+
+            if let Some(move_element) = maybe_move_element {
+                let game_move: GameMoveEntry = move_element
+                    .entry()
+                    .to_app_option()?
+                    .ok_or(WasmError::Guest("Malformed last move".into()))?;
+
+                maybe_last_move_hash = game_move.previous_move_hash.clone();
+                ordered_moves.push(game_move);
+            } else {
+                return Ok(ValidateCallbackResult::UnresolvedDependencies(vec![
+                    last_move_hash.into(),
+                ]));
+            }
+        }
+
+        ordered_moves.reverse();
 
         let maybe_last_move = ordered_moves.last();
 
         validate_it_is_authors_turn(&move_entry.author_pub_key, &maybe_last_move, &game.players)?;
 
-        let mut game_state = G::initial(&game.players.clone());
-
-        for (_index, game_move) in ordered_moves.iter().enumerate() {
-            let move_content = M::try_from(game_move.game_move.clone())
-                .or(Err(WasmError::Guest("Could not deserialize move".into())))?;
-            game_state.apply_move(&move_content, &game_move.author_pub_key)?;
-        }
+        let mut game_state = build_game_state::<G, M>(&game, ordered_moves)?;
 
         // Get the winner
         let winner = game_state.get_winner(&game.players);
@@ -115,10 +133,7 @@ where
             )));
         }
 
-        let new_move = M::try_from(move_entry.game_move.clone())
-            .or(Err(WasmError::Guest("Could not deserialize move".into())))?;
-
-        game_state.apply_move(&new_move, &move_entry.author_pub_key)?;
+        apply_move(&mut game_state, &game, &move_entry)?;
 
         Ok(ValidateCallbackResult::Valid)
     } else {

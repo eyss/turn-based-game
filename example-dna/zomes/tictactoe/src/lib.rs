@@ -1,47 +1,81 @@
 use hdk::prelude::*;
-use holochain_turn_based_game;
-use holochain_turn_based_game::game::GameEntry;
+use holo_hash::{AgentPubKeyB64, EntryHashB64};
+use holochain_turn_based_game::prelude::*;
 
 mod tictactoe;
 
 use tictactoe::{Piece, TicTacToe, TicTacToeMove};
 
-entry_defs![];
+entry_defs![GameMoveEntry::entry_def(), GameEntry::entry_def()];
 
 #[hdk_extern]
-fn create_game(rival: Address) -> ExternResult<Address> {
-    let game = GameEntry {
-        players: vec![rival, hdk::AGENT_ADDRESS.clone()],
-        created_at: timestamp,
-    };
-
-    holochain_turn_based_game::create_game(game)
+fn who_am_i(_: ()) -> ExternResult<AgentPubKeyB64> {
+    Ok(agent_info()?.agent_latest_pubkey.into())
 }
 
-#[zome_fn("hc_public")]
-fn place_piece(game_address: Address, x: usize, y: usize) -> ZomeApiResult<Address> {
+#[hdk_extern]
+fn create_game(rival: AgentPubKeyB64) -> ExternResult<EntryHashB64> {
+    let hash = holochain_turn_based_game::prelude::create_game(vec![
+        rival.into(),
+        agent_info()?.agent_latest_pubkey,
+    ])?;
+
+    Ok(hash.into())
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct PlacePieceInput {
+    game_hash: EntryHashB64,
+    previous_move_hash: Option<EntryHashB64>,
+    x: usize,
+    y: usize,
+}
+#[hdk_extern]
+fn place_piece(
+    PlacePieceInput {
+        game_hash,
+        previous_move_hash,
+        x,
+        y,
+    }: PlacePieceInput,
+) -> ExternResult<EntryHashB64> {
     let game_move = TicTacToeMove::Place(Piece { x, y });
-    holochain_turn_based_game::create_move(&game_address, game_move)
+    let move_hash = holochain_turn_based_game::prelude::create_move(
+        game_hash.into(),
+        previous_move_hash.map(|hash| hash.into()),
+        game_move,
+    )?;
+    Ok(move_hash.into())
 }
 
-#[zome_fn("hc_public")]
-fn get_winner(game_address: Address) -> ZomeApiResult<Option<Address>> {
-    holochain_turn_based_game::get_game_winner::<TicTacToe, TicTacToeMove>(&game_address)
+#[hdk_extern]
+fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>> {
+    let winner = holochain_turn_based_game::prelude::get_game_winner::<TicTacToe, TicTacToeMove>(
+        game_hash.into(),
+    )?;
+
+    Ok(winner.map(|w| w.into()))
 }
 
-#[zome_fn("hc_public")]
-fn get_agent_games(agent_address: Address) -> ZomeApiResult<Vec<Address>> {
-    holochain_turn_based_game::get_agent_games(&agent_address)
+#[hdk_extern]
+fn get_game_state(game_hash: EntryHashB64) -> ExternResult<TicTacToe> {
+    holochain_turn_based_game::prelude::get_game_state::<TicTacToe, TicTacToeMove>(game_hash.into())
 }
 
-#[zome_fn("hc_public")]
-fn get_game_state(game_address: Address) -> ZomeApiResult<TicTacToe> {
-    holochain_turn_based_game::get_game_state::<TicTacToe, TicTacToeMove>(&game_address)
+#[hdk_extern]
+fn validate_create_entry_game_entry(
+    validate_data: ValidateData,
+) -> ExternResult<ValidateCallbackResult> {
+    holochain_turn_based_game::prelude::validate_game_entry::<TicTacToe, TicTacToeMove>(
+        validate_data,
+    )
 }
 
-#[receive]
-fn receive(sender_address: Address, message: String) -> String {
-    let result = holochain_turn_based_game::handle_receive_move(sender_address, message);
-
-    JsonString::from(result).to_string()
+#[hdk_extern]
+fn validate_create_entry_game_move_entry(
+    validate_data: ValidateData,
+) -> ExternResult<ValidateCallbackResult> {
+    holochain_turn_based_game::prelude::validate_game_move_entry::<TicTacToe, TicTacToeMove>(
+        validate_data,
+    )
 }

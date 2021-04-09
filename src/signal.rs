@@ -1,11 +1,11 @@
 use hdk::prelude::*;
 
-use crate::entries::{game::GameEntry, game_move::MoveEntry};
+use crate::entries::{game::GameEntry, game_move::GameMoveEntry};
 
 /**
  * Sends the newly created move to all opponents of the game
  */
-pub fn send_move_signal(game_hash: EntryHash, game_move: MoveEntry) -> ExternResult<()> {
+pub fn send_move_signal(game_hash: EntryHash, game_move: GameMoveEntry) -> ExternResult<()> {
     let element = get(game_hash, GetOptions::default())?
         .ok_or(WasmError::Guest("Could not get game entry".into()))?;
 

@@ -5,9 +5,9 @@ use chrono::{DateTime, Utc};
 use hdk::prelude::*;
 use std::{collections::HashMap, convert::TryFrom};
 
-mod handlers;
+pub mod handlers;
 
-#[hdk_entry(id = "game")]
+#[hdk_entry(id = "game_entry")]
 pub struct GameEntry {
     pub players: Vec<AgentPubKey>,
     #[serde(with = "ts_milliseconds")]
@@ -20,7 +20,7 @@ pub struct GameEntry {
  * - There is a repeated player in the game
  * - The number of players is within the bounds defined by the game
  */
-pub fn validate_game_entry<G, M>(data: ValidateData) -> ExternResult<()>
+pub fn validate_game_entry<G, M>(data: ValidateData) -> ExternResult<ValidateCallbackResult>
 where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
@@ -37,7 +37,7 @@ where
 
     for player in game.players.iter() {
         if players_map.contains_key(player) {
-            return Err(WasmError::Guest(format!(
+            return Ok(ValidateCallbackResult::Invalid(format!(
                 "Game contains a repeated agent: {}",
                 player
             )));
@@ -46,14 +46,18 @@ where
     }
     if let Some(min_players) = G::min_players() {
         if game.players.len() < min_players {
-            return Err(WasmError::Guest(String::from("Bad number of players")));
+            return Ok(ValidateCallbackResult::Invalid(String::from(
+                "Bad number of players",
+            )));
         }
     }
     if let Some(max_players) = G::max_players() {
         if game.players.len() > max_players {
-            return Err(WasmError::Guest(String::from("Bad number of players")));
+            return Ok(ValidateCallbackResult::Invalid(String::from(
+                "Bad number of players",
+            )));
         }
     }
 
-    Ok(())
+    Ok(ValidateCallbackResult::Valid)
 }

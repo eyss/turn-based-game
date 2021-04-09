@@ -20,7 +20,7 @@ where
 
     // Applies the move to the game object, transforming it
     // If the move is invalid, it should return an error
-    fn apply_move(&mut self, game_move: &M, author_address: &AgentPubKey) -> ExternResult<()>;
+    fn apply_move(&mut self, game_move: &M, players: &Vec<AgentPubKey>, author_index: usize) -> ExternResult<()>;
 
     // Gets the winner for the game
     // Returns None if the game hasn't finished yet

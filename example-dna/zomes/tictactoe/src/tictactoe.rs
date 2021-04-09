@@ -1,42 +1,44 @@
 use hdk::prelude::*;
-use holochain_turn_based_game::game::TurnBasedGame;
+use holochain_turn_based_game::prelude::TurnBasedGame;
 
 pub const BOARD_SIZE: usize = 3;
 
-#[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TicTacToe {
     pub player_1: Vec<Piece>,
     pub player_2: Vec<Piece>,
     pub player_resigned: Option<u8>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
+#[derive(Clone, Debug, Serialize, Deserialize, SerializedBytes)]
 pub enum TicTacToeMove {
     Place(Piece),
     Resign,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, DefaultJson)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Piece {
     pub x: usize,
     pub y: usize,
 }
 
 impl Piece {
-    fn is_in_bounds(&self) -> Result<(), String> {
+    fn is_in_bounds(&self) -> ExternResult<()> {
         if self.x < BOARD_SIZE && self.y < BOARD_SIZE
         // no need to check > 0 as usize is always positive
         {
             Ok(())
         } else {
-            Err("Position is not in bounds".to_string())
+            Err(WasmError::Guest("Position is not in bounds".into()))
         }
     }
 
-    fn is_empty(&self, game_state: &TicTacToe) -> Result<(), String> {
+    fn is_empty(&self, game_state: &TicTacToe) -> ExternResult<()> {
         match game_state.to_dense()[self.x][self.y] == 0 {
             true => Ok(()),
-            false => Err("A piece already exists at that position.".to_string()),
+            false => Err(WasmError::Guest(
+                "A piece already exists at that position".into(),
+            )),
         }
     }
 }
@@ -50,7 +52,7 @@ impl TurnBasedGame<TicTacToeMove> for TicTacToe {
         Some(2)
     }
 
-    fn initial(_players: &Vec<Address>) -> Self {
+    fn initial(_players: &Vec<AgentPubKey>) -> Self {
         TicTacToe {
             player_1: vec![],
             player_2: vec![],
@@ -58,35 +60,29 @@ impl TurnBasedGame<TicTacToeMove> for TicTacToe {
         }
     }
 
-    fn is_valid(self, game_move: TicTacToeMove) -> Result<(), String> {
+    fn apply_move(
+        &mut self,
+        game_move: &TicTacToeMove,
+        _players: &Vec<AgentPubKey>,
+        author_index: usize,
+    ) -> ExternResult<()> {
         match game_move {
             TicTacToeMove::Place(piece) => {
                 piece.is_in_bounds()?;
                 piece.is_empty(&self)?;
-
-                Ok(())
+                match author_index {
+                    0 => self.player_1.push(piece.clone()),
+                    1 => self.player_2.push(piece.clone()),
+                    _ => {}
+                }
             }
-            TicTacToeMove::Resign => Ok(()),
+            TicTacToeMove::Resign => self.player_resigned = Some(author_index as u8),
         }
+
+        Ok(())
     }
 
-    fn apply_move(
-        &mut self,
-        game_move: &TicTacToeMove,
-        player_index: usize,
-        _author_address: &Address,
-    ) -> () {
-        match game_move {
-            TicTacToeMove::Place(piece) => match player_index {
-                0 => self.player_1.push(piece.clone()),
-                1 => self.player_2.push(piece.clone()),
-                _ => {}
-            },
-            TicTacToeMove::Resign => self.player_resigned = Some(player_index as u8),
-        }
-    }
-
-    fn get_winner(&self, players: &Vec<Address>) -> Option<Address> {
+    fn get_winner(&self, players: &Vec<AgentPubKey>) -> Option<AgentPubKey> {
         if let Some(resigned_player) = self.player_resigned {
             let winner_index = if resigned_player == 0 { 1 } else { 0 };
             return Some(players[winner_index].clone());
@@ -119,14 +115,14 @@ impl TurnBasedGame<TicTacToeMove> for TicTacToe {
             }
         }
         let player_1_victory = across.iter().any(|e| *e == (BOARD_SIZE as i32))
-            || down.iter().any(|e| *e == (BOARD_SIZE as i32));
-        || diag_down == (BOARD_SIZE as i32);
-        || diag_up == (BOARD_SIZE as i32);
+            || down.iter().any(|e| *e == (BOARD_SIZE as i32))
+            || diag_down == (BOARD_SIZE as i32)
+            || diag_up == (BOARD_SIZE as i32);
 
         let player_2_victory = across.iter().any(|e| *e == (-1 * BOARD_SIZE as i32))
-            || down.iter().any(|e| *e == (-1 * BOARD_SIZE as i32));
-        || diag_down == (-1 * BOARD_SIZE as i32);
-        || diag_up == (-1 * BOARD_SIZE as i32);
+            || down.iter().any(|e| *e == (-1 * BOARD_SIZE as i32))
+            || diag_down == (-1 * BOARD_SIZE as i32)
+            || diag_up == (-1 * BOARD_SIZE as i32);
         if player_1_victory {
             return Some(players[0].clone());
         } else if player_2_victory {
@@ -148,7 +144,7 @@ impl TicTacToe {
         board
     }
 
-    pub fn from_dense(board: [[u8; 8]; 8]) -> Self {
+    pub fn _from_dense(board: [[u8; 8]; 8]) -> Self {
         let mut player_1_pieces = Vec::new();
         let mut player_2_pieces = Vec::new();
         board.iter().enumerate().for_each(|(x, row)| {

@@ -4,7 +4,7 @@ use hdk::prelude::*;
 
 use crate::signal;
 
-use super::MoveEntry;
+use super::GameMoveEntry;
 
 /** Public handlers */
 
@@ -24,7 +24,7 @@ where
         .try_into()
         .or(Err(WasmError::Guest("Coulnd't serialize game move".into())))?;
 
-    let game_move = MoveEntry {
+    let game_move = GameMoveEntry {
         game_hash: game_hash.clone(),
         author_pub_key: agent_info()?.agent_latest_pubkey,
         game_move: move_bytes,
@@ -63,7 +63,7 @@ where
 /**
  * Returns all the moves for the given game
  */
-pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<MoveEntry>> {
+pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<GameMoveEntry>> {
     let links = get_links(game_hash, Some(game_to_move_tag()))?;
 
     let mut moves = links
@@ -79,7 +79,7 @@ pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<MoveEntry>> {
 
             Ok((link.target, move_entry))
         })
-        .collect::<ExternResult<Vec<(EntryHash, MoveEntry)>>>()?;
+        .collect::<ExternResult<Vec<(EntryHash, GameMoveEntry)>>>()?;
 
     order_moves(&mut moves)
 }
@@ -91,7 +91,7 @@ pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<MoveEntry>> {
  *
  * Returns error if in any case the chain of moves is not valid
  */
-fn order_moves(moves: &mut Vec<(EntryHash, MoveEntry)>) -> ExternResult<Vec<MoveEntry>> {
+fn order_moves(moves: &mut Vec<(EntryHash, GameMoveEntry)>) -> ExternResult<Vec<GameMoveEntry>> {
     if moves.is_empty() {
         return Ok(vec![]);
     }
@@ -99,7 +99,7 @@ fn order_moves(moves: &mut Vec<(EntryHash, MoveEntry)>) -> ExternResult<Vec<Move
     // previous_move_hash -> next_move_hash
     let mut next_moves_map: HashMap<EntryHash, EntryHash> = HashMap::new();
     // move_hash -> move_entry
-    let mut moves_map: HashMap<EntryHash, MoveEntry> = HashMap::new();
+    let mut moves_map: HashMap<EntryHash, GameMoveEntry> = HashMap::new();
 
     let mut first_move: Option<EntryHash> = None;
 
@@ -137,7 +137,7 @@ fn order_moves(moves: &mut Vec<(EntryHash, MoveEntry)>) -> ExternResult<Vec<Move
             ))
         }
         Some(first_move_hash) => {
-            let mut ordered_moves: Vec<MoveEntry> = vec![];
+            let mut ordered_moves: Vec<GameMoveEntry> = vec![];
 
             let mut maybe_next_move_hash: Option<EntryHash> = Some(first_move_hash);
 

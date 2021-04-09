@@ -1,17 +1,18 @@
 [package]
 authors = ["guillem.cordoba@gmail.com", "tim@pragmaticmind.com"]
 edition = "2018"
-name = "exercise"
+name = "tictactoe"
 version = "0.0.1"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "exercise"
+name = "tictactoe"
 
 [dependencies]
 derive_more = "0"
 serde = "1"
 
-hc_utils = "0"
-hdk = "0"
 chrono = "0.4.19"
+hdk = "0.0.100"
+holo_hash = "0.0.2-alpha.1"
+holochain_turn_based_game = {path = "../../../"}
