@@ -22,7 +22,7 @@ pub fn send_move_signal(game_hash: EntryHash, game_move: GameMoveEntry) -> Exter
         .filter(|player| player.clone() != agent_info.agent_latest_pubkey.clone())
         .collect();
 
-    remote_signal(game_move, opponents)?;
+    remote_signal(ExternIO::encode(game_move)?, opponents)?;
 
     Ok(())
 }
