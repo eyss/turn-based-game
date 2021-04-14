@@ -102,6 +102,17 @@ use holochain_turn_based_game::prelude::*;
 entry_defs![GameMoveEntry::entry_def(), GameEntry::entry_def()];
 ```
 
+### 5. Call the init function from the zome's `init`
+
+```rust
+use holochain_turn_based_game::prelude::*;
+
+#[hdk_extern]
+pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
+    init_turn_based_games()
+}
+```
+
 ## Play a game
 
 ### 1. Create a game
