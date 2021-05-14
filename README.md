@@ -72,21 +72,21 @@ impl Game<TicTacToeMove> for TicTacToe {
     }
 
     // Constructs the initial state for the game
-    fn initial(players: &Vec<AgentPubKey>) -> Self {
+    fn initial(players: &Vec<AgentPubKeyB64>) -> Self {
         ...
     }
 
     // Applies the move to the game object, transforming it
     // If the move is invalid, it should return an error
-    fn apply_move(&mut self, game_move: &M, players: &Vec<AgentPubKey>, author_index: usize) -> ExternResult<()> {
+    fn apply_move(&mut self, game_move: &M, players: &Vec<AgentPubKeyB64>, author_index: usize) -> ExternResult<()> {
         ...
     }
 
     // Gets the winner for the game
     fn get_winner(
       &self,
-      players: &Vec<Address>,
-    ) -> Option<AgentPubKey> {
+      players: &Vec<AgentPubKeyB64>,
+    ) -> Option<AgentPubKeyB64> {
         ...
     }
 }
@@ -123,11 +123,11 @@ To create a game, call the `create_game` function:
 #[hdk_extern]
 fn create_game(rival: AgentPubKeyB64) -> ExternResult<EntryHashB64> {
     let hash = holochain_turn_based_game::prelude::create_game(vec![
-        rival.into(),
-        agent_info()?.agent_latest_pubkey,
+        rival,
+        agent_info()?.agent_latest_pubkey.into(),
     ])?;
 
-    Ok(hash.into())
+    Ok(hash)
 }
 ```
 
@@ -157,7 +157,7 @@ fn place_piece(
     let game_move = TicTacToeMove::Place(Piece { x, y });
     let move_hash = holochain_turn_based_game::prelude::create_move(
         game_hash.into(),
-        previous_move_hash.map(|hash| hash.into()),
+        previous_move_hash,
         game_move,
     )?;
     Ok(move_hash.into())
@@ -171,7 +171,7 @@ To get the current game information and state, call `get_game_state` :
 ```rust
 #[hdk_extern]
 fn get_game_info(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe, TicTacTeoMove>> {
-    holochain_turn_based_game::prelude::get_game_info::<TicTacToe, TicTacToeMove>(game_hash.into())
+    holochain_turn_based_game::prelude::get_game_info::<TicTacToe, TicTacToeMove>(game_hash)
 }
 ```
 
@@ -180,7 +180,7 @@ To get the moves that have been done during the game, call `get_game_moves` :
 ```rust
 #[zome_fn("hc_public")]
 fn get_moves(game_hash: EntryHashB64) -> ExternResult<Vec<TicTacToeMove>> {
-    holochain_turn_based_game::prelude::get_game_moves::<TicTacToe, TicTacToeMove>(game_hash.into())
+    holochain_turn_based_game::prelude::get_game_moves::<TicTacToe, TicTacToeMove>(game_hash)
 }
 ```
 
@@ -190,9 +190,9 @@ And to get the winner of the game, call `get_game_winner` :
 #[hdk_extern]
 fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>> {
     let winner = holochain_turn_based_game::prelude::get_game_winner::<TicTacToe, TicTacToeMove>(
-        game_hash.into(),
+        game_hash,
     )?;
 
-    Ok(winner.map(|w| w.into()))
+    Ok(winner)
 }
 ```
