@@ -18,16 +18,15 @@ pub struct GameEntry {
 
 // IO structs
 #[derive(Serialize, Deserialize, Debug)]
-pub struct GameInfo<G, M> {
+pub struct GameInfo<G> {
     game_entry: GameEntry,
     game_state: G,
-    moves: Vec<MoveInfo<M>>,
+    moves: Vec<MoveInfo>,
 }
 #[derive(Serialize, Deserialize, Debug)]
-pub struct MoveInfo<M> {
-    move_hash: EntryHashB64,
-    move_entry: GameMoveEntry,
-    game_move: M,
+pub struct MoveInfo {
+    pub move_hash: EntryHashB64,
+    pub move_entry: GameMoveEntry,
 }
 
 /**

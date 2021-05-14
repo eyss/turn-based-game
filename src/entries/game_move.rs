@@ -1,5 +1,5 @@
 use hdk::prelude::*;
-use holo_hash::AgentPubKeyB64;
+use holo_hash::{AgentPubKeyB64, EntryHashB64};
 use std::convert::TryFrom;
 
 use crate::turn_based_game::TurnBasedGame;
@@ -14,10 +14,10 @@ pub mod handlers;
 #[hdk_entry(id = "game_move_entry")]
 #[derive(Clone)]
 pub struct GameMoveEntry {
-    pub game_hash: EntryHash,
+    pub game_hash: EntryHashB64,
     pub author_pub_key: AgentPubKeyB64,
     pub game_move: SerializedBytes,
-    pub previous_move_hash: Option<EntryHash>,
+    pub previous_move_hash: Option<EntryHashB64>,
 }
 
 /**
@@ -81,7 +81,10 @@ where
         ));
     }
 
-    let maybe_element = get(move_entry.game_hash.clone(), GetOptions::default())?;
+    let maybe_element = get(
+        EntryHash::from(move_entry.game_hash.clone()),
+        GetOptions::default(),
+    )?;
 
     if let Some(element) = maybe_element {
         let game: GameEntry = element
@@ -95,11 +98,14 @@ where
             ));
         }
 
-        let mut maybe_last_move_hash: Option<EntryHash> = move_entry.previous_move_hash.clone();
+        let mut maybe_last_move_hash: Option<EntryHashB64> = move_entry.previous_move_hash.clone();
         let mut ordered_moves: Vec<GameMoveEntry> = Vec::new();
 
         while let Some(last_move_hash) = maybe_last_move_hash {
-            let maybe_move_element = get(last_move_hash.clone(), GetOptions::content())?;
+            let maybe_move_element = get(
+                EntryHash::from(last_move_hash.clone()),
+                GetOptions::content(),
+            )?;
 
             if let Some(move_element) = maybe_move_element {
                 let game_move: GameMoveEntry = move_element
@@ -111,7 +117,7 @@ where
                 ordered_moves.push(game_move);
             } else {
                 return Ok(ValidateCallbackResult::UnresolvedDependencies(vec![
-                    last_move_hash.into(),
+                    EntryHash::from(last_move_hash).into(),
                 ]));
             }
         }
@@ -139,7 +145,7 @@ where
         Ok(ValidateCallbackResult::Valid)
     } else {
         return Ok(ValidateCallbackResult::UnresolvedDependencies(vec![
-            move_entry.game_hash.into(),
+            EntryHash::from(move_entry.game_hash).into(),
         ]));
     }
 }

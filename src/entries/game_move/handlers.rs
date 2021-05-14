@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use hdk::prelude::*;
+use holo_hash::EntryHashB64;
 
 use crate::{
-    prelude::GameEntry,
+    prelude::{GameEntry, MoveInfo},
     signal::{self, SignalPayload},
 };
 
@@ -16,8 +17,8 @@ use super::GameMoveEntry;
  * If this is the first move, we should
  */
 pub fn create_move<M>(
-    game_hash: EntryHash,
-    previous_move_hash: Option<EntryHash>,
+    game_hash: EntryHashB64,
+    previous_move_hash: Option<EntryHashB64>,
     game_move: M,
 ) -> ExternResult<EntryHash>
 where
@@ -28,7 +29,7 @@ where
         .or(Err(WasmError::Guest("Coulnd't serialize game move".into())))?;
 
     let game_move = GameMoveEntry {
-        game_hash: game_hash.clone(),
+        game_hash: game_hash.clone().into(),
         author_pub_key: agent_info()?.agent_latest_pubkey.into(),
         game_move: move_bytes,
         previous_move_hash: previous_move_hash.clone(),
@@ -38,18 +39,25 @@ where
 
     let move_hash = hash_entry(&game_move)?;
 
-    create_link(game_hash.clone(), move_hash.clone(), game_to_move_tag())?;
+    create_link(
+        EntryHash::from(game_hash.clone()),
+        move_hash.clone(),
+        game_to_move_tag(),
+    )?;
 
     // Sends the newly created move to all opponents of the game
 
-    let element = get(game_hash, GetOptions::default())?
+    let element = get(EntryHash::from(game_hash), GetOptions::default())?
         .ok_or(WasmError::Guest("Could not get game entry".into()))?;
 
     let game: GameEntry = element
         .entry()
         .to_app_option()?
         .ok_or(WasmError::Guest("Failed to convert game entry".into()))?;
-    let signal = SignalPayload::Move(game_move);
+    let signal = SignalPayload::Move(MoveInfo {
+        move_hash: move_hash.clone().into(),
+        move_entry: game_move,
+    });
 
     signal::send_signal_to_players(game, signal)?;
 
@@ -59,7 +67,7 @@ where
 /**
  * Get all the moves for the given game
  */
-pub fn get_game_moves<M>(game_hash: EntryHash) -> ExternResult<Vec<M>>
+pub fn get_game_moves<M>(game_hash: EntryHashB64) -> ExternResult<Vec<M>>
 where
     M: TryFrom<SerializedBytes> + TryInto<SerializedBytes>,
 {
@@ -77,8 +85,10 @@ where
 /**
  * Returns all the moves for the given game
  */
-pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<(EntryHash, GameMoveEntry)>> {
-    let links = get_links(game_hash, Some(game_to_move_tag()))?;
+pub fn get_moves_entries(
+    game_hash: EntryHashB64,
+) -> ExternResult<Vec<(EntryHashB64, GameMoveEntry)>> {
+    let links = get_links(EntryHash::from(game_hash), Some(game_to_move_tag()))?;
 
     let mut moves = links
         .into_inner()
@@ -91,9 +101,9 @@ pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<(EntryHash, G
                 .to_app_option()?
                 .ok_or(WasmError::Guest("Couldn't deserialize move".into()))?;
 
-            Ok((link.target, move_entry))
+            Ok((link.target.into(), move_entry))
         })
-        .collect::<ExternResult<Vec<(EntryHash, GameMoveEntry)>>>()?;
+        .collect::<ExternResult<Vec<(EntryHashB64, GameMoveEntry)>>>()?;
 
     order_moves(&mut moves)
 }
@@ -106,18 +116,18 @@ pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<(EntryHash, G
  * Returns error if in any case the chain of moves is not valid
  */
 fn order_moves(
-    moves: &mut Vec<(EntryHash, GameMoveEntry)>,
-) -> ExternResult<Vec<(EntryHash, GameMoveEntry)>> {
+    moves: &mut Vec<(EntryHashB64, GameMoveEntry)>,
+) -> ExternResult<Vec<(EntryHashB64, GameMoveEntry)>> {
     if moves.is_empty() {
         return Ok(vec![]);
     }
 
     // previous_move_hash -> next_move_hash
-    let mut next_moves_map: HashMap<EntryHash, EntryHash> = HashMap::new();
+    let mut next_moves_map: HashMap<EntryHashB64, EntryHashB64> = HashMap::new();
     // move_hash -> move_entry
-    let mut moves_map: HashMap<EntryHash, GameMoveEntry> = HashMap::new();
+    let mut moves_map: HashMap<EntryHashB64, GameMoveEntry> = HashMap::new();
 
-    let mut first_move: Option<EntryHash> = None;
+    let mut first_move: Option<EntryHashB64> = None;
 
     for move_entry in moves {
         if let Some(previous_move) = move_entry.1.previous_move_hash.clone() {
@@ -153,9 +163,9 @@ fn order_moves(
             ))
         }
         Some(first_move_hash) => {
-            let mut ordered_moves: Vec<(EntryHash, GameMoveEntry)> = vec![];
+            let mut ordered_moves: Vec<(EntryHashB64, GameMoveEntry)> = vec![];
 
-            let mut maybe_next_move_hash: Option<EntryHash> = Some(first_move_hash);
+            let mut maybe_next_move_hash: Option<EntryHashB64> = Some(first_move_hash);
 
             while let Some(next_move_hash) = maybe_next_move_hash {
                 match moves_map.get(&next_move_hash) {

@@ -1,11 +1,11 @@
-use crate::entries::{game::GameEntry, game_move::GameMoveEntry};
+use crate::{entries::game::GameEntry, prelude::MoveInfo};
 use hdk::prelude::*;
 use holo_hash::EntryHashB64;
 
 #[derive(Serialize, Deserialize, Debug, SerializedBytes)]
 pub enum SignalPayload {
     GameStarted((EntryHashB64, GameEntry)),
-    Move(GameMoveEntry),
+    Move(MoveInfo),
 }
 
 /**

@@ -43,7 +43,7 @@ pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHash> {
 /**
  * Gets the winner of the game
  */
-pub fn get_game_winner<G, M>(game_hash: EntryHash) -> ExternResult<Option<AgentPubKeyB64>>
+pub fn get_game_winner<G, M>(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>>
 where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
@@ -57,7 +57,7 @@ where
 /**
  * Gets the current state of the game
  */
-pub fn get_game_info<G, M>(game_hash: EntryHash) -> ExternResult<GameInfo<G, M>>
+pub fn get_game_info<G, M>(game_hash: EntryHashB64) -> ExternResult<GameInfo<G>>
 where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
@@ -72,15 +72,12 @@ where
     let serialized_moves = moves
         .into_iter()
         .map(|m| {
-            let serialized_move = M::try_from(m.1.clone().game_move)
-                .or(Err(WasmError::Guest("Can't convert move".into())))?;
             Ok(MoveInfo {
                 move_hash: EntryHashB64::from(m.0),
                 move_entry: m.1,
-                game_move: serialized_move,
             })
         })
-        .collect::<ExternResult<Vec<MoveInfo<M>>>>()?;
+        .collect::<ExternResult<Vec<MoveInfo>>>()?;
 
     let game_state = GameInfo {
         game_entry: game,
@@ -90,8 +87,8 @@ where
     Ok(game_state)
 }
 
-pub fn get_game(game_hash: EntryHash) -> ExternResult<GameEntry> {
-    let element = get(game_hash, GetOptions::default())?
+pub fn get_game(game_hash: EntryHashB64) -> ExternResult<GameEntry> {
+    let element = get(EntryHash::from(game_hash), GetOptions::default())?
         .ok_or(WasmError::Guest("There is no game at this hash".into()))?;
 
     element
