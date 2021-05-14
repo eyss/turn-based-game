@@ -2,7 +2,11 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use game_move::GameMoveEntry;
 use hdk::prelude::*;
 
-use crate::{entries::game_move, turn_based_game::TurnBasedGame};
+use crate::{
+    entries::game_move,
+    signal::{send_signal_to_players, SignalPayload},
+    turn_based_game::TurnBasedGame,
+};
 
 use super::GameEntry;
 
@@ -27,6 +31,10 @@ pub fn create_game(players: Vec<AgentPubKey>) -> ExternResult<EntryHash> {
     create_entry(&game)?;
 
     let game_hash = hash_entry(&game)?;
+
+    let signal = SignalPayload::GameStarted((game_hash.clone().into(), game.clone()));
+
+    send_signal_to_players(game, signal)?;
 
     Ok(game_hash)
 }

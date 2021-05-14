@@ -8,6 +8,7 @@ use std::{collections::HashMap, convert::TryFrom};
 pub mod handlers;
 
 #[hdk_entry(id = "game_entry")]
+#[derive(Clone)]
 pub struct GameEntry {
     pub players: Vec<AgentPubKey>,
     #[serde(with = "ts_milliseconds")]

@@ -19,3 +19,4 @@ serde = "1"
 
 chrono = {version = "0.4.19", features = ["serde"]}
 hdk = "0.0.100"
+holo_hash = "0.0.2-alpha.1"

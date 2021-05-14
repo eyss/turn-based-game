@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use hdk::prelude::*;
 
-use crate::signal;
+use crate::{
+    prelude::GameEntry,
+    signal::{self, SignalPayload},
+};
 
 use super::GameMoveEntry;
 
@@ -37,7 +40,18 @@ where
 
     create_link(game_hash.clone(), move_hash.clone(), game_to_move_tag())?;
 
-    signal::send_move_signal(game_hash, game_move)?;
+    // Sends the newly created move to all opponents of the game
+    
+    let element = get(game_hash, GetOptions::default())?
+        .ok_or(WasmError::Guest("Could not get game entry".into()))?;
+
+    let game: GameEntry = element
+        .entry()
+        .to_app_option()?
+        .ok_or(WasmError::Guest("Failed to convert game entry".into()))?;
+    let signal = SignalPayload::Move(game_move);
+
+    signal::send_signal_to_players(game, signal)?;
 
     Ok(move_hash)
 }
