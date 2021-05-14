@@ -20,7 +20,7 @@ pub fn create_move<M>(
     game_hash: EntryHashB64,
     previous_move_hash: Option<EntryHashB64>,
     game_move: M,
-) -> ExternResult<EntryHash>
+) -> ExternResult<EntryHashB64>
 where
     M: TryFrom<SerializedBytes> + TryInto<SerializedBytes>,
 {
@@ -61,25 +61,22 @@ where
 
     signal::send_signal_to_players(game, signal)?;
 
-    Ok(move_hash)
+    Ok(move_hash.into())
 }
 
 /**
  * Get all the moves for the given game
  */
-pub fn get_game_moves<M>(game_hash: EntryHashB64) -> ExternResult<Vec<M>>
-where
-    M: TryFrom<SerializedBytes> + TryInto<SerializedBytes>,
-{
+pub fn get_game_moves(game_hash: EntryHashB64) -> ExternResult<Vec<MoveInfo>> {
     let moves = get_moves_entries(game_hash)?;
 
-    moves
+    Ok(moves
         .into_iter()
-        .map(|move_entry| {
-            M::try_from(move_entry.1.game_move)
-                .or(Err(WasmError::Guest("Coulnt't convert game move".into())))
+        .map(|(move_hash, move_entry)| MoveInfo {
+            move_hash,
+            move_entry,
         })
-        .collect::<ExternResult<Vec<M>>>()
+        .collect())
 }
 
 /**

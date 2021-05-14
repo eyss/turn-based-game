@@ -156,31 +156,31 @@ fn place_piece(
 ) -> ExternResult<EntryHashB64> {
     let game_move = TicTacToeMove::Place(Piece { x, y });
     let move_hash = holochain_turn_based_game::prelude::create_move(
-        game_hash.into(),
+        game_hash,
         previous_move_hash,
         game_move,
     )?;
-    Ok(move_hash.into())
+    Ok(move_hash)
 }
 ```
 
 ### 3. Get game state
 
-To get the current game information and state, call `get_game_state` :
+To get the game entry, call `get_game` :
 
 ```rust
 #[hdk_extern]
-fn get_game_info(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe>> {
-    holochain_turn_based_game::prelude::get_game_info::<TicTacToe, TicTacToeMove>(game_hash)
+fn get_game(game_hash: EntryHashB64) -> ExternResult<GameEntry> {
+    holochain_turn_based_game::prelude::get_game(game_hash)
 }
 ```
 
 To get the moves that have been done during the game, call `get_game_moves` :
 
 ```rust
-#[zome_fn("hc_public")]
-fn get_moves(game_hash: EntryHashB64) -> ExternResult<Vec<TicTacToeMove>> {
-    holochain_turn_based_game::prelude::get_game_moves::<TicTacToe, TicTacToeMove>(game_hash)
+#[hdk_extern]
+fn get_moves(game_hash: EntryHashB64) -> ExternResult<Vec<MoveInfo>> {
+    holochain_turn_based_game::prelude::get_game_moves(game_hash)
 }
 ```
 

@@ -9,14 +9,14 @@ use crate::{
     turn_based_game::TurnBasedGame,
 };
 
-use super::{GameEntry, GameInfo, MoveInfo};
+use super::GameEntry;
 
 /** Public handlers */
 
 /**
  * Creates the game
  */
-pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHash> {
+pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHashB64> {
     let now = sys_time()?;
 
     let date_time = DateTime::from_utc(
@@ -37,7 +37,7 @@ pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHash> {
 
     send_signal_to_players(game, signal)?;
 
-    Ok(game_hash)
+    Ok(game_hash.into())
 }
 
 /**
@@ -49,42 +49,24 @@ where
     M: TryFrom<SerializedBytes>,
 {
     let game = get_game(game_hash.clone())?;
-    let game_state = get_game_info::<G, M>(game_hash)?;
+    let game_state = get_game_state::<G, M>(game_hash)?;
 
-    Ok(game_state.game_state.get_winner(&game.players))
+    Ok(game_state.get_winner(&game.players))
 }
 
 /**
  * Gets the current state of the game
  */
-pub fn get_game_info<G, M>(game_hash: EntryHashB64) -> ExternResult<GameInfo<G>>
+pub fn get_game_state<G, M>(game_hash: EntryHashB64) -> ExternResult<G>
 where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
 {
     let moves = game_move::handlers::get_moves_entries(game_hash.clone())?;
     let game = get_game(game_hash.clone())?;
-
     let only_moves: Vec<GameMoveEntry> = moves.iter().map(|m| m.1.clone()).collect();
 
-    let state: G = build_game_state(&game, &only_moves)?;
-
-    let serialized_moves = moves
-        .into_iter()
-        .map(|m| {
-            Ok(MoveInfo {
-                move_hash: EntryHashB64::from(m.0),
-                move_entry: m.1,
-            })
-        })
-        .collect::<ExternResult<Vec<MoveInfo>>>()?;
-
-    let game_state = GameInfo {
-        game_entry: game,
-        game_state: state,
-        moves: serialized_moves,
-    };
-    Ok(game_state)
+    build_game_state(&game, &only_moves)
 }
 
 pub fn get_game(game_hash: EntryHashB64) -> ExternResult<GameEntry> {
