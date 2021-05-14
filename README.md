@@ -170,7 +170,7 @@ To get the current game information and state, call `get_game_state` :
 
 ```rust
 #[hdk_extern]
-fn get_game_info(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe, TicTacTeoMove>> {
+fn get_game_info(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe>> {
     holochain_turn_based_game::prelude::get_game_info::<TicTacToe, TicTacToeMove>(game_hash)
 }
 ```

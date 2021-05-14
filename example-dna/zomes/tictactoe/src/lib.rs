@@ -58,7 +58,7 @@ fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>> {
 }
 
 #[hdk_extern]
-fn get_game_state(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe, TicTacToeMove>> {
+fn get_game_state(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe>> {
     holochain_turn_based_game::prelude::get_game_info::<TicTacToe, TicTacToeMove>(game_hash.into())
 }
 
