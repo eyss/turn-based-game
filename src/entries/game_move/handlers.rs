@@ -29,7 +29,7 @@ where
 
     let game_move = GameMoveEntry {
         game_hash: game_hash.clone(),
-        author_pub_key: agent_info()?.agent_latest_pubkey,
+        author_pub_key: agent_info()?.agent_latest_pubkey.into(),
         game_move: move_bytes,
         previous_move_hash: previous_move_hash.clone(),
     };
@@ -41,7 +41,7 @@ where
     create_link(game_hash.clone(), move_hash.clone(), game_to_move_tag())?;
 
     // Sends the newly created move to all opponents of the game
-    
+
     let element = get(game_hash, GetOptions::default())?
         .ok_or(WasmError::Guest("Could not get game entry".into()))?;
 
@@ -68,7 +68,7 @@ where
     moves
         .into_iter()
         .map(|move_entry| {
-            M::try_from(move_entry.game_move)
+            M::try_from(move_entry.1.game_move)
                 .or(Err(WasmError::Guest("Coulnt't convert game move".into())))
         })
         .collect::<ExternResult<Vec<M>>>()
@@ -77,7 +77,7 @@ where
 /**
  * Returns all the moves for the given game
  */
-pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<GameMoveEntry>> {
+pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<(EntryHash, GameMoveEntry)>> {
     let links = get_links(game_hash, Some(game_to_move_tag()))?;
 
     let mut moves = links
@@ -105,7 +105,9 @@ pub fn get_moves_entries(game_hash: EntryHash) -> ExternResult<Vec<GameMoveEntry
  *
  * Returns error if in any case the chain of moves is not valid
  */
-fn order_moves(moves: &mut Vec<(EntryHash, GameMoveEntry)>) -> ExternResult<Vec<GameMoveEntry>> {
+fn order_moves(
+    moves: &mut Vec<(EntryHash, GameMoveEntry)>,
+) -> ExternResult<Vec<(EntryHash, GameMoveEntry)>> {
     if moves.is_empty() {
         return Ok(vec![]);
     }
@@ -151,7 +153,7 @@ fn order_moves(moves: &mut Vec<(EntryHash, GameMoveEntry)>) -> ExternResult<Vec<
             ))
         }
         Some(first_move_hash) => {
-            let mut ordered_moves: Vec<GameMoveEntry> = vec![];
+            let mut ordered_moves: Vec<(EntryHash, GameMoveEntry)> = vec![];
 
             let mut maybe_next_move_hash: Option<EntryHash> = Some(first_move_hash);
 
@@ -161,7 +163,7 @@ fn order_moves(moves: &mut Vec<(EntryHash, GameMoveEntry)>) -> ExternResult<Vec<
                         "There are missing moves in the list".into(),
                     )),
                     Some(move_entry) => {
-                        ordered_moves.push(move_entry.clone());
+                        ordered_moves.push((next_move_hash.clone(), move_entry.clone()));
                         Ok(())
                     }
                 }?;

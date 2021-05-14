@@ -1,6 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use game_move::GameMoveEntry;
 use hdk::prelude::*;
+use holo_hash::{AgentPubKeyB64, EntryHashB64};
 
 use crate::{
     entries::game_move,
@@ -8,14 +9,14 @@ use crate::{
     turn_based_game::TurnBasedGame,
 };
 
-use super::GameEntry;
+use super::{GameEntry, GameInfo, MoveInfo};
 
 /** Public handlers */
 
 /**
  * Creates the game
  */
-pub fn create_game(players: Vec<AgentPubKey>) -> ExternResult<EntryHash> {
+pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHash> {
     let now = sys_time()?;
 
     let date_time = DateTime::from_utc(
@@ -42,21 +43,21 @@ pub fn create_game(players: Vec<AgentPubKey>) -> ExternResult<EntryHash> {
 /**
  * Gets the winner of the game
  */
-pub fn get_game_winner<G, M>(game_hash: EntryHash) -> ExternResult<Option<AgentPubKey>>
+pub fn get_game_winner<G, M>(game_hash: EntryHash) -> ExternResult<Option<AgentPubKeyB64>>
 where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
 {
     let game = get_game(game_hash.clone())?;
-    let game_state = get_game_state::<G, M>(game_hash)?;
+    let game_state = get_game_info::<G, M>(game_hash)?;
 
-    Ok(game_state.get_winner(&game.players))
+    Ok(game_state.game_state.get_winner(&game.players))
 }
 
 /**
  * Gets the current state of the game
  */
-pub fn get_game_state<G, M>(game_hash: EntryHash) -> ExternResult<G>
+pub fn get_game_info<G, M>(game_hash: EntryHash) -> ExternResult<GameInfo<G, M>>
 where
     G: TurnBasedGame<M>,
     M: TryFrom<SerializedBytes>,
@@ -64,7 +65,29 @@ where
     let moves = game_move::handlers::get_moves_entries(game_hash.clone())?;
     let game = get_game(game_hash.clone())?;
 
-    build_game_state(&game, moves)
+    let only_moves: Vec<GameMoveEntry> = moves.iter().map(|m| m.1.clone()).collect();
+
+    let state: G = build_game_state(&game, &only_moves)?;
+
+    let serialized_moves = moves
+        .into_iter()
+        .map(|m| {
+            let serialized_move = M::try_from(m.1.clone().game_move)
+                .or(Err(WasmError::Guest("Can't convert move".into())))?;
+            Ok(MoveInfo {
+                move_hash: EntryHashB64::from(m.0),
+                move_entry: m.1,
+                game_move: serialized_move,
+            })
+        })
+        .collect::<ExternResult<Vec<MoveInfo<M>>>>()?;
+
+    let game_state = GameInfo {
+        game_entry: game,
+        game_state: state,
+        moves: serialized_moves,
+    };
+    Ok(game_state)
 }
 
 pub fn get_game(game_hash: EntryHash) -> ExternResult<GameEntry> {
@@ -79,7 +102,7 @@ pub fn get_game(game_hash: EntryHash) -> ExternResult<GameEntry> {
 
 pub(crate) fn build_game_state<G, M>(
     game_entry: &GameEntry,
-    moves: Vec<GameMoveEntry>,
+    moves: &Vec<GameMoveEntry>,
 ) -> ExternResult<G>
 where
     G: TurnBasedGame<M>,

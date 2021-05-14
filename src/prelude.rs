@@ -1,6 +1,6 @@
 pub use crate::entries::game::{
-    handlers::{create_game, get_game, get_game_state, get_game_winner},
-    validate_game_entry, GameEntry,
+    handlers::{create_game, get_game, get_game_info, get_game_winner},
+    validate_game_entry, GameEntry, GameInfo, MoveInfo,
 };
 pub use crate::entries::game_move::{
     handlers::{create_move, get_game_moves},

@@ -1,5 +1,6 @@
 use hdk::prelude::*;
 use holochain_turn_based_game::prelude::TurnBasedGame;
+use holo_hash::AgentPubKeyB64;
 
 pub const BOARD_SIZE: usize = 3;
 
@@ -52,7 +53,7 @@ impl TurnBasedGame<TicTacToeMove> for TicTacToe {
         Some(2)
     }
 
-    fn initial(_players: &Vec<AgentPubKey>) -> Self {
+    fn initial(_players: &Vec<AgentPubKeyB64>) -> Self {
         TicTacToe {
             player_1: vec![],
             player_2: vec![],
@@ -63,7 +64,7 @@ impl TurnBasedGame<TicTacToeMove> for TicTacToe {
     fn apply_move(
         &mut self,
         game_move: &TicTacToeMove,
-        _players: &Vec<AgentPubKey>,
+        _players: &Vec<AgentPubKeyB64>,
         author_index: usize,
     ) -> ExternResult<()> {
         match game_move {
@@ -82,7 +83,7 @@ impl TurnBasedGame<TicTacToeMove> for TicTacToe {
         Ok(())
     }
 
-    fn get_winner(&self, players: &Vec<AgentPubKey>) -> Option<AgentPubKey> {
+    fn get_winner(&self, players: &Vec<AgentPubKeyB64>) -> Option<AgentPubKeyB64> {
         if let Some(resigned_player) = self.player_resigned {
             let winner_index = if resigned_player == 0 { 1 } else { 0 };
             return Some(players[winner_index].clone());

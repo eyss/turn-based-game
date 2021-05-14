@@ -1,4 +1,5 @@
 use hdk::prelude::*;
+use holo_hash::AgentPubKeyB64;
 use std::convert::TryFrom;
 
 use crate::turn_based_game::TurnBasedGame;
@@ -14,7 +15,7 @@ pub mod handlers;
 #[derive(Clone)]
 pub struct GameMoveEntry {
     pub game_hash: EntryHash,
-    pub author_pub_key: AgentPubKey,
+    pub author_pub_key: AgentPubKeyB64,
     pub game_move: SerializedBytes,
     pub previous_move_hash: Option<EntryHash>,
 }
@@ -23,9 +24,9 @@ pub struct GameMoveEntry {
  * Validate that it's the turn of the author of the move
  */
 fn validate_it_is_authors_turn(
-    author_pub_key: &AgentPubKey,
+    author_pub_key: &AgentPubKeyB64,
     maybe_last_move: &Option<&GameMoveEntry>,
-    players: &Vec<AgentPubKey>,
+    players: &Vec<AgentPubKeyB64>,
 ) -> ExternResult<()> {
     let maybe_last_player_index = match maybe_last_move {
         Some(last_move) => players
@@ -74,7 +75,7 @@ where
         .to_app_option()?
         .ok_or(WasmError::Guest("Bad move entry content".into()))?;
 
-    if author.clone() != move_entry.author_pub_key {
+    if author.clone() != AgentPubKey::from(move_entry.author_pub_key.clone()) {
         return Err(WasmError::Guest(
             "This move is not signed by its author".into(),
         ));
@@ -121,7 +122,7 @@ where
 
         validate_it_is_authors_turn(&move_entry.author_pub_key, &maybe_last_move, &game.players)?;
 
-        let mut game_state = build_game_state::<G, M>(&game, ordered_moves)?;
+        let mut game_state = build_game_state::<G, M>(&game, &ordered_moves)?;
 
         // Get the winner
         let winner = game_state.get_winner(&game.players);

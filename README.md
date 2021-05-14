@@ -166,6 +166,15 @@ fn place_piece(
 
 ### 3. Get game state
 
+To get the current game information and state, call `get_game_state` :
+
+```rust
+#[hdk_extern]
+fn get_game_info(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe, TicTacTeoMove>> {
+    holochain_turn_based_game::prelude::get_game_info::<TicTacToe, TicTacToeMove>(game_hash.into())
+}
+```
+
 To get the moves that have been done during the game, call `get_game_moves` :
 
 ```rust
@@ -185,14 +194,5 @@ fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>> {
     )?;
 
     Ok(winner.map(|w| w.into()))
-}
-```
-
-To get the current game state, call `get_game_state` :
-
-```rust
-#[hdk_extern]
-fn get_game_state(game_hash: EntryHashB64) -> ExternResult<TicTacToe> {
-    holochain_turn_based_game::prelude::get_game_state::<TicTacToe, TicTacToeMove>(game_hash.into())
 }
 ```

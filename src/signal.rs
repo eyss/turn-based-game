@@ -17,6 +17,7 @@ pub fn send_signal_to_players(game: GameEntry, signal: SignalPayload) -> ExternR
     let opponents: Vec<AgentPubKey> = game
         .players
         .into_iter()
+        .map(|p| AgentPubKey::from(p))
         .filter(|player| player.clone() != agent_info.agent_latest_pubkey.clone())
         .collect();
 

@@ -1,8 +1,9 @@
-use crate::turn_based_game::TurnBasedGame;
+use crate::{prelude::GameMoveEntry, turn_based_game::TurnBasedGame};
 
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
 use hdk::prelude::*;
+use holo_hash::{AgentPubKeyB64, EntryHashB64};
 use std::{collections::HashMap, convert::TryFrom};
 
 pub mod handlers;
@@ -10,9 +11,23 @@ pub mod handlers;
 #[hdk_entry(id = "game_entry")]
 #[derive(Clone)]
 pub struct GameEntry {
-    pub players: Vec<AgentPubKey>,
+    pub players: Vec<AgentPubKeyB64>,
     #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
+}
+
+// IO structs
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GameInfo<G, M> {
+    game_entry: GameEntry,
+    game_state: G,
+    moves: Vec<MoveInfo<M>>,
+}
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MoveInfo<M> {
+    move_hash: EntryHashB64,
+    move_entry: GameMoveEntry,
+    game_move: M,
 }
 
 /**
@@ -34,7 +49,7 @@ where
             "Trying to validate an entry that's not a game".into(),
         ))?;
 
-    let mut players_map: HashMap<AgentPubKey, bool> = HashMap::new();
+    let mut players_map: HashMap<AgentPubKeyB64, bool> = HashMap::new();
 
     for player in game.players.iter() {
         if players_map.contains_key(player) {

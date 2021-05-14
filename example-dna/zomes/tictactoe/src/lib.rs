@@ -16,8 +16,8 @@ fn who_am_i(_: ()) -> ExternResult<AgentPubKeyB64> {
 #[hdk_extern]
 fn create_game(rival: AgentPubKeyB64) -> ExternResult<EntryHashB64> {
     let hash = holochain_turn_based_game::prelude::create_game(vec![
-        rival.into(),
-        agent_info()?.agent_latest_pubkey,
+        rival,
+        agent_info()?.agent_latest_pubkey.into(),
     ])?;
 
     Ok(hash.into())
@@ -54,12 +54,12 @@ fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>> {
         game_hash.into(),
     )?;
 
-    Ok(winner.map(|w| w.into()))
+    Ok(winner)
 }
 
 #[hdk_extern]
-fn get_game_state(game_hash: EntryHashB64) -> ExternResult<TicTacToe> {
-    holochain_turn_based_game::prelude::get_game_state::<TicTacToe, TicTacToeMove>(game_hash.into())
+fn get_game_state(game_hash: EntryHashB64) -> ExternResult<GameInfo<TicTacToe, TicTacToeMove>> {
+    holochain_turn_based_game::prelude::get_game_info::<TicTacToe, TicTacToeMove>(game_hash.into())
 }
 
 #[hdk_extern]
