@@ -12,7 +12,7 @@ use hdk::prelude::*;
 
 pub fn init_turn_based_games() -> ExternResult<InitCallbackResult> {
     // grant unrestricted access to accept_cap_claim so other agents can send us claims
-    let mut functions: GrantedFunctions = HashSet::new();
+    let mut functions: GrantedFunctions = BTreeSet::new();
     functions.insert((zome_info()?.zome_name, "recv_remote_signal".into()));
     create_cap_grant(CapGrantEntry {
         tag: "".into(),
