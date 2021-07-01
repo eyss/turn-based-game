@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use hdk::prelude::*;
-use holo_hash::EntryHashB64;
+use hdk::prelude::holo_hash::EntryHashB64;
 
 use crate::{
     prelude::{GameEntry, MoveInfo},

@@ -1,6 +1,6 @@
 use crate::{entries::game::GameEntry, prelude::MoveInfo};
 use hdk::prelude::*;
-use holo_hash::EntryHashB64;
+use hdk::prelude::holo_hash::EntryHashB64;
 
 #[derive(Serialize, Deserialize, Debug, SerializedBytes)]
 pub enum SignalPayload {

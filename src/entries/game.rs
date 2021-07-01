@@ -3,7 +3,7 @@ use crate::{prelude::GameMoveEntry, turn_based_game::TurnBasedGame};
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
 use hdk::prelude::*;
-use holo_hash::{AgentPubKeyB64, EntryHashB64};
+use hdk::prelude::holo_hash::{AgentPubKeyB64, EntryHashB64};
 use std::{collections::HashMap, convert::TryFrom};
 
 pub mod handlers;

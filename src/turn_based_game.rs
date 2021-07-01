@@ -1,5 +1,5 @@
 use hdk::prelude::*;
-use holo_hash::AgentPubKeyB64;
+use hdk::prelude::holo_hash::AgentPubKeyB64;
 
 /**
  * Game trait that your game struct has to implement

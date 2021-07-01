@@ -1,7 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use game_move::GameMoveEntry;
 use hdk::prelude::*;
-use holo_hash::{AgentPubKeyB64, EntryHashB64};
+use hdk::prelude::holo_hash::{AgentPubKeyB64, EntryHashB64};
 
 use crate::{
     entries::game_move,
