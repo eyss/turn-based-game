@@ -1,10 +1,10 @@
-# holochain_turn_based_game
+# hc_turn_based_game
 
 Generic holochain engine mixin to create turn based games in your holochain apps. These are games with a finite number of players, in which each player takes turns consecutively to play their turn.
 
 This is an update from the previous version of this engine which can be found in https://github.com/holochain-devcamp/generic-game, coded by https://github.com/willemolding.
 
-This mixin is built to target `hdk v0.0.100` , and published on crates: https://crates.io/crates/holochain_turn_based_game.
+This mixin is built to target `hdk v0.0.101-alpha.0` , and published on crates: https://crates.io/crates/hc_turn_based_game.
 
 ## Documentation
 
@@ -15,10 +15,10 @@ Here you can find the documentation for this mixin: https://docs.rs/holochain-tu
 Add the following to your zomes cargo toml.
 
 ```
-holochain_turn_based_game = "0.2"
+hc_turn_based_game = "0.0.1"
 ```
 
-## Setup
+## Usage
 
 We're going to follow all the steps in order to create or turn based game, by using tic-tac-toe as an example (you can find the full hApp example in `example-dna` ).
 
@@ -57,7 +57,6 @@ pub enum TicTacToeMove {
 Next, we need to specify the behaviour of our game. This is done by implementing the `Game` trait:
 
 ```rust
-
 impl Game<TicTacToeMove> for TicTacToe {
     // The minimum number of players that must participate for the game to be valid
     // Return None if there is no limit
@@ -97,7 +96,7 @@ From now on, when calling most functions in the crate, we'll need to provide the
 ### 4. Add the game and move entry definitions
 
 ```rust
-use holochain_turn_based_game::prelude::*;
+use hc_turn_based_game::prelude::*;
 
 entry_defs![GameMoveEntry::entry_def(), GameEntry::entry_def()];
 ```
@@ -105,11 +104,33 @@ entry_defs![GameMoveEntry::entry_def(), GameEntry::entry_def()];
 ### 5. Call the init function from the zome's `init`
 
 ```rust
-use holochain_turn_based_game::prelude::*;
+use hc_turn_based_game::prelude::*;
 
 #[hdk_extern]
 pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
     init_turn_based_games()
+}
+```
+
+### 6. Add the validation callbacks for `game_entry` and `game_move_entry`
+
+```rust
+#[hdk_extern]
+fn validate_create_entry_game_entry(
+    validate_data: ValidateData,
+) -> ExternResult<ValidateCallbackResult> {
+    hc_turn_based_game::prelude::validate_game_entry::<TicTacToe, TicTacToeMove>(
+        validate_data,
+    )
+}
+
+#[hdk_extern]
+fn validate_create_entry_game_move_entry(
+    validate_data: ValidateData,
+) -> ExternResult<ValidateCallbackResult> {
+    hc_turn_based_game::prelude::validate_game_move_entry::<TicTacToe, TicTacToeMove>(
+        validate_data,
+    )
 }
 ```
 
@@ -122,7 +143,7 @@ To create a game, call the `create_game` function:
 ```rust
 #[hdk_extern]
 fn create_game(rival: AgentPubKeyB64) -> ExternResult<EntryHashB64> {
-    let hash = holochain_turn_based_game::prelude::create_game(vec![
+    let hash = hc_turn_based_game::prelude::create_game(vec![
         rival,
         agent_info()?.agent_latest_pubkey.into(),
     ])?;
@@ -155,7 +176,7 @@ fn place_piece(
     }: PlacePieceInput,
 ) -> ExternResult<EntryHashB64> {
     let game_move = TicTacToeMove::Place(Piece { x, y });
-    let move_hash = holochain_turn_based_game::prelude::create_move(
+    let move_hash = hc_turn_based_game::prelude::create_move(
         game_hash,
         previous_move_hash,
         game_move,
@@ -171,7 +192,7 @@ To get the game entry, call `get_game` :
 ```rust
 #[hdk_extern]
 fn get_game(game_hash: EntryHashB64) -> ExternResult<GameEntry> {
-    holochain_turn_based_game::prelude::get_game(game_hash)
+    hc_turn_based_game::prelude::get_game(game_hash)
 }
 ```
 
@@ -180,7 +201,7 @@ To get the moves that have been done during the game, call `get_game_moves` :
 ```rust
 #[hdk_extern]
 fn get_moves(game_hash: EntryHashB64) -> ExternResult<Vec<MoveInfo>> {
-    holochain_turn_based_game::prelude::get_game_moves(game_hash)
+    hc_turn_based_game::prelude::get_game_moves(game_hash)
 }
 ```
 
@@ -189,7 +210,7 @@ And to get the winner of the game, call `get_game_winner` :
 ```rust
 #[hdk_extern]
 fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>> {
-    let winner = holochain_turn_based_game::prelude::get_game_winner::<TicTacToe, TicTacToeMove>(
+    let winner = hc_turn_based_game::prelude::get_game_winner::<TicTacToe, TicTacToeMove>(
         game_hash,
     )?;
 

@@ -1,8 +1,8 @@
-pub use crate::entries::game::{
+pub use crate::game::{
     handlers::{create_game, get_game, get_game_winner, get_game_state},
     validate_game_entry, GameEntry, MoveInfo,
 };
-pub use crate::entries::game_move::{
+pub use crate::game_move::{
     handlers::{create_move, get_game_moves},
     validate_game_move_entry, GameMoveEntry,
 };

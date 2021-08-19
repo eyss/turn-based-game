@@ -1,5 +1,5 @@
 use hdk::prelude::*;
-use holochain_turn_based_game::prelude::TurnBasedGame;
+use hc_turn_based_game::prelude::TurnBasedGame;
 use hdk::prelude::holo_hash::AgentPubKeyB64;
 
 pub const BOARD_SIZE: usize = 3;

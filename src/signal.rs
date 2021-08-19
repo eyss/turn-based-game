@@ -1,4 +1,4 @@
-use crate::{entries::game::GameEntry, prelude::MoveInfo};
+use crate::{game::GameEntry, prelude::MoveInfo};
 use hdk::prelude::*;
 use hdk::prelude::holo_hash::EntryHashB64;
 

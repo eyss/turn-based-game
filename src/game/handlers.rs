@@ -1,10 +1,9 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
-use game_move::GameMoveEntry;
-use hdk::prelude::*;
 use hdk::prelude::holo_hash::{AgentPubKeyB64, EntryHashB64};
+use hdk::prelude::*;
 
 use crate::{
-    entries::game_move,
+    game_move::{self, GameMoveEntry},
     signal::{send_signal_to_players, SignalPayload},
     turn_based_game::TurnBasedGame,
 };
