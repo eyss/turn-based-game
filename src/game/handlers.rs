@@ -16,7 +16,7 @@ use super::GameEntry;
  * Creates the game
  */
 pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHashB64> {
-    let now = sys_time()?;
+    let now = sys_time()?.as_seconds_and_nanos();
 
     let date_time = DateTime::from_utc(NaiveDateTime::from_timestamp(now.0, now.1), Utc);
 
