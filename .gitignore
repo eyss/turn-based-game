@@ -28,6 +28,7 @@ target/
 #already existing elements are commented out
 
 /target
+*.dna
 #**/*.rs.bk
 
 
