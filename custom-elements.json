@@ -1,0 +1,444 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/context.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "turnBasedGameStoreContext",
+          "type": {
+            "text": "Context<TurnBasedGameStore<any>>"
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "turnBasedGameStoreContext",
+          "declaration": {
+            "name": "turnBasedGameStoreContext",
+            "module": "src/context.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/index.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "*",
+          "declaration": {
+            "name": "*",
+            "package": "./turn-based-game-service"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "*",
+          "declaration": {
+            "name": "*",
+            "package": "./turn-based-game-store"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "*",
+          "declaration": {
+            "name": "*",
+            "package": "./elements/my-current-games"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "*",
+          "declaration": {
+            "name": "*",
+            "package": "./types"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "*",
+          "declaration": {
+            "name": "*",
+            "package": "./context"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/shared-styles.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "sharedStyles",
+          "default": "css`\n  .column {\n    display: flex;\n    flex-direction: column;\n  }\n  .row {\n    display: flex;\n    flex-direction: row;\n  }\n  .title {\n    font-size: 20px;\n  }\n  .fill {\n    flex: 1;\n  }\n  .center-content {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n  }\n  :host {\n    display: flex;\n  }\n  .placeholder {\n    color: rgba(0, 0, 0, 0.6);\n    text-align: center;\n  }\n  .flex-scrollable-parent {\n    position: relative;\n    display: flex;\n    flex: 1;\n  }\n  .flex-scrollable-container {\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n  }\n  .flex-scrollable-x {\n    max-width: 100%;\n    overflow-x: auto;\n  }\n  .flex-scrollable-y {\n    max-height: 100%;\n    overflow-y: auto;\n  }\n`"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "sharedStyles",
+          "declaration": {
+            "name": "sharedStyles",
+            "module": "src/shared-styles.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/turn-based-game-service.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "TurnBasedGameService",
+          "members": [
+            {
+              "kind": "method",
+              "name": "getGameMoves",
+              "privacy": "public",
+              "return": {
+                "type": {
+                  "text": "Promise<Array<MoveInfo<any>>>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                }
+              ],
+              "description": "These functions **must** match the functions defined in lib/src/mixin.rs"
+            },
+            {
+              "kind": "method",
+              "name": "getMyCurrentGames",
+              "privacy": "public",
+              "return": {
+                "type": {
+                  "text": "Promise<Dictionary<GameEntry>>"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "callZome",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "Promise<any>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "fnName",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "payload",
+                  "type": {
+                    "text": "any"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "TurnBasedGameService",
+          "declaration": {
+            "name": "TurnBasedGameService",
+            "module": "src/turn-based-game-service.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/turn-based-game-store.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "TurnBasedGameStore",
+          "members": [
+            {
+              "kind": "field",
+              "name": "#gamesByEntryHash",
+              "privacy": "private",
+              "type": {
+                "text": "Writable<{\n    [key: string]: GameState<M>;\n  }>"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "game",
+              "privacy": "public",
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "myGames",
+              "privacy": "public"
+            },
+            {
+              "kind": "field",
+              "name": "myAgentPubKey",
+              "privacy": "public"
+            },
+            {
+              "kind": "method",
+              "name": "opponent",
+              "return": {
+                "type": {
+                  "text": "AgentPubKeyB64"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "game",
+                  "type": {
+                    "text": "GameEntry"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "fetchMyCurrentGames",
+              "description": "Backend actions"
+            },
+            {
+              "kind": "method",
+              "name": "fetchGameMoves",
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "handleNewGameStarted",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "entryHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                },
+                {
+                  "name": "gameEntry",
+                  "type": {
+                    "text": "GameEntry"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "handleNewMove",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "moveHeaderHash",
+                  "type": {
+                    "text": "HeaderHashB64"
+                  }
+                },
+                {
+                  "name": "gameMove",
+                  "type": {
+                    "text": "GameMoveEntry<M>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "decodeMove",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "GameMoveEntry<M>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "move",
+                  "type": {
+                    "text": "GameMoveEntry<any>"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "TurnBasedGameStore",
+          "declaration": {
+            "name": "TurnBasedGameStore",
+            "module": "src/turn-based-game-store.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/types.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/utils.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "headerTimestamp",
+          "return": {
+            "type": {
+              "text": "number"
+            }
+          },
+          "parameters": [
+            {
+              "name": "header",
+              "type": {
+                "text": "any"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "headerTimestamp",
+          "declaration": {
+            "name": "headerTimestamp",
+            "module": "src/utils.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/elements/my-current-games.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "MyCurrentGames",
+          "members": [
+            {
+              "kind": "field",
+              "name": "_store",
+              "type": {
+                "text": "TurnBasedGameStore<any>"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "loading",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "true"
+            },
+            {
+              "kind": "field",
+              "name": "_knownProfiles",
+              "default": "new StoreSubscriber(\n    this,\n    () => this._store.profilesStore.knownProfiles\n  )"
+            },
+            {
+              "kind": "field",
+              "name": "_myGames",
+              "default": "new StoreSubscriber(this, () => this._store.myGames)"
+            },
+            {
+              "kind": "method",
+              "name": "nicknameOf",
+              "parameters": [
+                {
+                  "name": "agent",
+                  "type": {
+                    "text": "AgentPubKeyB64"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "renderGames"
+            },
+            {
+              "kind": "field",
+              "name": "scopedElements",
+              "static": true
+            }
+          ],
+          "events": [
+            {
+              "name": "open-game",
+              "type": {
+                "text": "CustomEvent"
+              }
+            }
+          ],
+          "mixins": [
+            {
+              "name": "ScopedElementsMixin",
+              "package": "@open-wc/scoped-elements"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "MyCurrentGames",
+          "declaration": {
+            "name": "MyCurrentGames",
+            "module": "src/elements/my-current-games.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

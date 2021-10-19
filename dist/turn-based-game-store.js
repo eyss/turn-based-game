@@ -1,0 +1,96 @@
+var _TurnBasedGameStore_gamesByEntryHash;
+import { __classPrivateFieldGet } from "tslib";
+import { serializeHash, } from '@holochain-open-dev/core-types';
+import { decode } from '@msgpack/msgpack';
+import { derived, get, writable } from 'svelte/store';
+export class TurnBasedGameStore {
+    constructor(turnBasedGameService, profilesStore) {
+        this.turnBasedGameService = turnBasedGameService;
+        this.profilesStore = profilesStore;
+        _TurnBasedGameStore_gamesByEntryHash.set(this, writable({}));
+        this.myGames = derived(__classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f"), games => {
+            const myGames = {};
+            for (const [hash, game] of Object.entries(games)) {
+                if (game.entry.players.includes(this.myAgentPubKey)) {
+                    myGames[hash] = game.entry;
+                }
+            }
+            return myGames;
+        });
+        this.turnBasedGameService.cellClient.addSignalHandler(signal => {
+            if (signal.data.payload.type === 'GameStarted') {
+                this.handleNewGameStarted(signal.data.payload.game_hash, signal.data.payload.game_hash);
+            }
+            else if (signal.data.payload.type === 'NewMove') {
+                this.handleNewMove(signal.data.payload.header_hash, signal.data.payload.game_move_entry);
+            }
+        });
+    }
+    game(gameHash) {
+        return derived(__classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f"), games => games[gameHash]);
+    }
+    get myAgentPubKey() {
+        return serializeHash(this.turnBasedGameService.cellClient.cellId[1]);
+    }
+    opponent(game) {
+        return game.players.find(p => p !== this.myAgentPubKey);
+    }
+    /** Backend actions */
+    async fetchMyCurrentGames() {
+        const myCurrentGames = await this.turnBasedGameService.getMyCurrentGames();
+        const opponents = Object.values(myCurrentGames).map(game => this.opponent(game));
+        await this.profilesStore.fetchAgentsProfiles(opponents);
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            for (const [hash, game] of Object.entries(myCurrentGames)) {
+                games[hash] = {
+                    entry: game,
+                    moves: [],
+                };
+            }
+            return games;
+        });
+    }
+    async fetchGameMoves(gameHash) {
+        const moves = await this.turnBasedGameService.getGameMoves(gameHash);
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            games[gameHash].moves = moves.map(m => ({
+                header_hash: m.header_hash,
+                game_move_entry: this.decodeMove(m.game_move_entry),
+            }));
+            return games;
+        });
+    }
+    async handleNewGameStarted(entryHash, gameEntry) {
+        await this.profilesStore.fetchAgentsProfiles([this.opponent(gameEntry)]);
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            games[entryHash] = {
+                entry: gameEntry,
+                moves: [],
+            };
+            return games;
+        });
+    }
+    async handleNewMove(moveHeaderHash, gameMove) {
+        const games = get(__classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f"));
+        if (!games[gameMove.game_hash]) {
+            // We are not currently subscribing to this game
+            return;
+        }
+        const move = this.decodeMove(gameMove);
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            games[gameMove.game_hash].moves.push({
+                header_hash: moveHeaderHash,
+                game_move_entry: move,
+            });
+            return games;
+        });
+    }
+    decodeMove(move) {
+        return {
+            ...move,
+            game_move: decode(move.game_move),
+        };
+    }
+}
+_TurnBasedGameStore_gamesByEntryHash = new WeakMap();
+//# sourceMappingURL=turn-based-game-store.js.map

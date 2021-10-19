@@ -1,0 +1,96 @@
+{
+  "name": "@eyss/turn-based-game",
+  "description": "Webcomponent hc-elo following open-wc recommendations",
+  "license": "MIT",
+  "author": "guillem.cordoba@gmail.com",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "analyze": "cem analyze --litelement",
+    "build": "tsc && npm run analyze -- --exclude dist",
+    "prepublish": "tsc && npm run analyze -- --exclude dist",
+    "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
+    "format": "eslint --ext .ts,.html . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
+    "publish-to-branch": "npm run lint && npm run build && gh-pages -d ./ -b ui-build"
+  },
+  "dependencies": {
+    "@holochain-open-dev/cell-client": "^0.0.7",
+    "@holochain-open-dev/core-types": "^0.1.1",
+    "@holochain-open-dev/profiles": "github:holochain-open-dev/profiles#ui-build",
+    "@holochain/conductor-api": "^0.2.1",
+    "@lit-labs/context": "github:holochain-open-dev/context#build",
+    "@msgpack/msgpack": "^2.7.1",
+    "@open-wc/scoped-elements": "^2.0.0-next.6",
+    "@scoped-elements/material-web": "^0.0.14",
+    "@scoped-elements/shoelace": "^0.0.6",
+    "lit": "^2.0.2",
+    "lit-svelte-stores": "^0.1.3",
+    "svelte": "^3.43.2"
+  },
+  "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.4.17",
+    "@open-wc/eslint-config": "^4.3.0",
+    "@rollup/plugin-commonjs": "18.0.0",
+    "@rollup/plugin-replace": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "@web/dev-server": "^0.1.25",
+    "@web/dev-server-rollup": "^0.3.11",
+    "concurrently": "^5.3.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "gh-pages": "^3.2.3",
+    "husky": "^4.3.8",
+    "lint-staged": "^10.5.4",
+    "prettier": "^2.4.1",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.4"
+  },
+  "customElements": "custom-elements.json",
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "extends": [
+      "@open-wc",
+      "prettier"
+    ],
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "no-param-reassign": "off",
+      "no-empty-function": "off",
+      "no-shadow": "off",
+      "no-useless-constructor": "off",
+      "class-methods-use-this": "off",
+      "no-new": "off",
+      "camelcase": "off",
+      "import/extensions": "off",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error"
+      ],
+      "import/no-unresolved": "off"
+    }
+  },
+  "prettier": {
+    "singleQuote": true,
+    "arrowParens": "avoid"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
