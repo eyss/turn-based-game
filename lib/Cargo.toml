@@ -1,0 +1,20 @@
+[package]
+authors = ["guillem <guillem.cordoba@gmail.com>"]
+description = "Holochain generic library to build turn based games, with DHT validation of moves"
+documentation = "https://docs.rs/hc-turn-based-game"
+edition = "2018"
+
+license-file = "LICENSE"
+name = "hc_mixin_turn_based_game"
+repository = "https://github.com/eyss/turn-based-game"
+version = "0.0.1"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+derive_more = "0"
+serde = "1"
+
+chrono = {version = "0.4.19", features = ["serde"]}
+hdk = "0.0.109"
+holo_hash = {version = "0.0.8", features = ["encoding"]}

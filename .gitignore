@@ -13,7 +13,7 @@ Cargo.lock
 
 target/
 .cargo/
-
+node_modules/
 
 #Added by cargo
 #
@@ -29,6 +29,9 @@ target/
 
 /target
 *.dna
+*.happ
+.hc
+.hc*
 #**/*.rs.bk
 
 

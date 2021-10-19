@@ -1,0 +1,17 @@
+[package]
+authors = ["guillem.cordoba@gmail.com", "tim@pragmaticmind.com"]
+edition = "2018"
+name = "tictactoe"
+version = "0.0.1"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "tictactoe"
+
+[dependencies]
+derive_more = "0"
+serde = "1"
+
+chrono = "0.4.19"
+hc_mixin_turn_based_game = {path = "../../../lib"}
+hdk = "0.0.109"

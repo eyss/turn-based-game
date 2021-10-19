@@ -1,0 +1,8 @@
+---
+manifest_version: "1"
+name: tictactoe-test
+uuid: 00000000-0000-0000-0000-000000000000
+properties: ~
+zomes:
+  - name: tictactoe
+    bundled: ../../target/wasm32-unknown-unknown/release/tictactoe.wasm
