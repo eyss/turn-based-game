@@ -25,11 +25,6 @@ macro_rules! mixin_turn_based_game {
         }
 
         #[hdk_extern]
-        fn get_game_state(game_hash: EntryHashB64) -> ExternResult<$turn_based_game> {
-            $crate::get_game_state::<$turn_based_game>(game_hash.into())
-        }
-
-        #[hdk_extern]
         fn get_game_moves(game_hash: EntryHashB64) -> ExternResult<Vec<$crate::MoveInfo>> {
             $crate::get_game_moves(game_hash.into())
         }

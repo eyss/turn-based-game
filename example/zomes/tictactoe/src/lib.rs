@@ -46,6 +46,11 @@ fn place_piece(
 }
 
 #[hdk_extern]
+fn get_game_state(game_hash: EntryHashB64) -> ExternResult<TicTacToe> {
+    hc_mixin_turn_based_game::get_game_state::<TicTacToe>(game_hash.into())
+}
+
+#[hdk_extern]
 fn get_outcome(game_hash: EntryHashB64) -> ExternResult<GameOutcome<Winner>> {
     let winner = hc_mixin_turn_based_game::get_game_outcome::<TicTacToe>(game_hash.into())?;
 
