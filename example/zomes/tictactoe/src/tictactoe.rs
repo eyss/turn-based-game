@@ -59,7 +59,7 @@ impl TurnBasedGame for TicTacToe {
         Some(2)
     }
 
-    fn initial(_players: &Vec<AgentPubKeyB64>) -> Self {
+    fn initial(_players: Vec<AgentPubKeyB64>) -> Self {
         TicTacToe {
             player_1: vec![],
             player_2: vec![],

@@ -81,7 +81,7 @@ pub(crate) fn build_game_state<G: TurnBasedGame>(
     game_entry: &GameEntry,
     moves: &Vec<GameMoveEntry>,
 ) -> ExternResult<G> {
-    let mut game_state = G::initial(&game_entry.players.clone());
+    let mut game_state = G::initial(game_entry.players.clone());
 
     for (_index, game_move) in moves.iter().enumerate() {
         apply_move(&mut game_state, &game_entry, game_move)?;
