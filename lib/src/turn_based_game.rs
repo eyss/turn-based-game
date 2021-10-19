@@ -10,8 +10,8 @@ pub enum GameOutcome<GameResult> {
 /**
  * Game trait that your game struct has to implement
  */
-pub trait TurnBasedGame {
-    type GameMove: TryFrom<SerializedBytes> + TryInto<SerializedBytes>;
+pub trait TurnBasedGame: TryFrom<SerializedBytes> + TryInto<SerializedBytes> {
+    type GameMove: TryFrom<SerializedBytes> + TryInto<SerializedBytes> + Clone;
     type GameResult: TryFrom<SerializedBytes> + TryInto<SerializedBytes>;
 
     // The minimum number of players that must participate for the game to be valid

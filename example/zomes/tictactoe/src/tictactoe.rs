@@ -4,7 +4,7 @@ use hdk::prelude::*;
 
 pub const BOARD_SIZE: usize = 3;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct TicTacToe {
     pub player_1: Vec<Piece>,
     pub player_2: Vec<Piece>,

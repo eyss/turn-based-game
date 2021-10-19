@@ -2,7 +2,7 @@ use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use super::GameMoveEntry;
-use crate::game::{apply_move, build_game_state, GameEntry};
+use crate::game::{apply_move, GameEntry};
 use crate::turn_based_game::TurnBasedGame;
 use crate::GameOutcome;
 
@@ -37,19 +37,24 @@ pub fn validate_game_move_entry<G: TurnBasedGame>(
             ));
         }
 
-        let mut maybe_last_move_hash: Option<HeaderHashB64> = move_entry.previous_move_hash.clone();
-        let mut ordered_moves: Vec<GameMoveEntry> = Vec::new();
+        let maybe_last_move_hash: Option<HeaderHashB64> = move_entry.previous_move_hash.clone();
 
-        while let Some(last_move_hash) = maybe_last_move_hash {
+        let mut previous_game_state = G::initial(game.players.clone());
+        let mut maybe_last_move: Option<GameMoveEntry> = None;
+
+        if let Some(last_move_hash) = maybe_last_move_hash {
             let move_element = must_get_valid_element(last_move_hash.clone().into())?;
-            trace!("Validating move, previous move element: {:?}", move_element);
 
             let maybe_game_move: Option<GameMoveEntry> = move_element.entry().to_app_option()?;
 
+            trace!("Validating move, previous move element: {:?}", move_element);
+
             if let Some(game_move) = maybe_game_move {
                 trace!("Validating move, previous move entry: {:?}", game_move);
-                maybe_last_move_hash = game_move.previous_move_hash.clone();
-                ordered_moves.push(game_move);
+                previous_game_state = G::try_from(game_move.clone().resulting_game_state).or(
+                    Err(WasmError::Guest("Couldn't deserialize game state".into())),
+                )?;
+                maybe_last_move = Some(game_move);
             } else {
                 return Ok(ValidateCallbackResult::UnresolvedDependencies(vec![
                     HeaderHash::from(last_move_hash).into(),
@@ -57,23 +62,17 @@ pub fn validate_game_move_entry<G: TurnBasedGame>(
             }
         }
 
-        ordered_moves.reverse();
-
-        let maybe_last_move = ordered_moves.last();
-
         validate_it_is_authors_turn(&move_entry.author_pub_key, &maybe_last_move, &game.players)?;
-
-        let mut game_state = build_game_state::<G>(&game, &ordered_moves)?;
 
         // Get the outcome of the game
 
-        if let GameOutcome::Finished(_) = game_state.outcome(game.players.clone()) {
+        if let GameOutcome::Finished(_) = previous_game_state.outcome(game.players.clone()) {
             return Err(WasmError::Guest(format!(
                 "Game is already finished: cannot make any more moves",
             )));
         }
 
-        apply_move(&mut game_state, &game, &move_entry)?;
+        apply_move(&mut previous_game_state, &game, &move_entry)?;
 
         Ok(ValidateCallbackResult::Valid)
     } else {
@@ -90,7 +89,7 @@ pub fn validate_game_move_entry<G: TurnBasedGame>(
  */
 fn validate_it_is_authors_turn(
     author_pub_key: &AgentPubKeyB64,
-    maybe_last_move: &Option<&GameMoveEntry>,
+    maybe_last_move: &Option<GameMoveEntry>,
     players: &Vec<AgentPubKeyB64>,
 ) -> ExternResult<()> {
     let maybe_last_player_index = match maybe_last_move {

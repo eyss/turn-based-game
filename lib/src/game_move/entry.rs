@@ -8,6 +8,7 @@ pub struct GameMoveEntry {
     pub game_hash: EntryHashB64,
     pub author_pub_key: AgentPubKeyB64,
     pub game_move: SerializedBytes,
+    pub resulting_game_state: SerializedBytes,
     pub previous_move_hash: Option<HeaderHashB64>,
 }
 
