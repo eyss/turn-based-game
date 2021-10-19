@@ -1,5 +1,5 @@
 import { Context, createContext } from '@lit-labs/context';
-import { EloStore } from './elo-store';
+import { TurnBasedGameStore } from './turn-based-game-store';
 
-export const eloStoreContext: Context<EloStore> =
-  createContext('hc_mixin_elo/store');
+export const turnBasedGameStoreContext: Context<TurnBasedGameStore<any>> =
+  createContext('hc_mixin_turn_based_game/store');

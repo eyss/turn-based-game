@@ -2,6 +2,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use hdk::prelude::holo_hash::{AgentPubKeyB64, EntryHashB64};
 use hdk::prelude::*;
 
+use crate::{current_games, GameOutcome};
 use crate::{
     game_move::{self, GameMoveEntry},
     signal::{send_signal_to_players, SignalPayload},
@@ -21,13 +22,15 @@ pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHashB64> {
     let date_time = DateTime::from_utc(NaiveDateTime::from_timestamp(now.0, now.1), Utc);
 
     let game = GameEntry {
-        players,
+        players: players.clone(),
         created_at: date_time,
     };
 
     create_entry(&game)?;
 
     let game_hash = hash_entry(&game)?;
+
+    current_games::add_current_game(game_hash.clone(), players)?;
 
     let game_hash_b64 = EntryHashB64::from(game_hash);
 
@@ -44,13 +47,13 @@ pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHashB64> {
 /**
  * Gets the winner of the game
  */
-pub fn get_game_winner<G: TurnBasedGame>(
+pub fn get_game_outcome<G: TurnBasedGame>(
     game_hash: EntryHashB64,
-) -> ExternResult<Option<AgentPubKeyB64>> {
+) -> ExternResult<GameOutcome<G::GameResult>> {
     let game = get_game(game_hash.clone())?;
     let game_state = get_game_state::<G>(game_hash)?;
 
-    Ok(game_state.get_winner(game.players.clone()))
+    Ok(game_state.outcome(game.players.clone()))
 }
 
 /**

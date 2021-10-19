@@ -9,7 +9,10 @@ import path from "path";
 const conductorConfig = Config.gen();
 
 // Construct proper paths for your DNAs
-const tictactoe = path.join(__dirname, "../../example/workdir/tictactoe-test.dna");
+const tictactoe = path.join(
+  __dirname,
+  "../../example/workdir/tictactoe-test.dna"
+);
 
 // create an InstallAgentsHapps array with your DNAs to tell tryorama what
 // to install into the conductor.
@@ -27,6 +30,8 @@ const installation: InstallAgentsHapps = [
 
 const createGame = (caller) => (rival) =>
   caller.call("tictactoe", "create_tictactoe_game", rival);
+const getMyCurrentGames = (caller) => () =>
+  caller.call("tictactoe", "get_my_current_games", null);
 
 const createMove = (caller) => (gameHash, previousMoveHash, x, y) =>
   caller.call("tictactoe", "place_piece", {
@@ -36,8 +41,8 @@ const createMove = (caller) => (gameHash, previousMoveHash, x, y) =>
     y,
   });
 
-const getWinner = (caller) => (gameHash) =>
-  caller.call("tictactoe", "get_winner", gameHash);
+const getOutcome = (caller) => (gameHash) =>
+  caller.call("tictactoe", "get_outcome", gameHash);
 
 const getState = (caller) => (gameHash) =>
   caller.call("tictactoe", "get_game_state", gameHash);
@@ -75,10 +80,13 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   t.ok(result);
   await sleep(4000);
 
+  const currentGames = await getMyCurrentGames(alice)();
+  t.equal(Object.keys(currentGames).length, 1);
+
   let gameAddress = result;
 
-  result = await getWinner(alice)(gameAddress);
-  t.equal(result, null);
+  result = await getOutcome(alice)(gameAddress);
+  t.deepEqual(result, { Ongoing: null });
 
   result = await getState(alice)(gameAddress);
   t.deepEqual(result, {
@@ -126,10 +134,10 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
 
   lastMoveHash = await createMove(bob)(gameAddress, lastMoveHash, 0, 2);
   t.ok(lastMoveHash);
-  await sleep(3000);
+  await sleep(4000);
 
-  result = await getWinner(alice)(gameAddress);
-  t.equal(result, bobAddress);
+  result = await getOutcome(alice)(gameAddress);
+  t.deepEqual(result, { Finished: bobAddress });
 
   result = await getState(alice)(gameAddress);
   t.deepEqual(result, {

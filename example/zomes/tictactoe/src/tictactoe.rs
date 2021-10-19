@@ -1,4 +1,4 @@
-use hc_mixin_turn_based_game::TurnBasedGame;
+use hc_mixin_turn_based_game::{GameOutcome, TurnBasedGame};
 use hdk::prelude::holo_hash::AgentPubKeyB64;
 use hdk::prelude::*;
 
@@ -16,6 +16,9 @@ pub enum TicTacToeMove {
     Place(Piece),
     Resign,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize, SerializedBytes)]
+pub struct Winner(AgentPubKeyB64);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Piece {
@@ -46,6 +49,7 @@ impl Piece {
 
 impl TurnBasedGame for TicTacToe {
     type GameMove = TicTacToeMove;
+    type GameResult = Winner;
 
     fn min_players() -> Option<usize> {
         Some(2)
@@ -85,11 +89,11 @@ impl TurnBasedGame for TicTacToe {
         Ok(())
     }
 
-    fn get_winner(&self, players: Vec<AgentPubKeyB64>) -> Option<AgentPubKeyB64> {
+    fn outcome(&self, players: Vec<AgentPubKeyB64>) -> GameOutcome<Winner> {
         if let Some(resigned_player) = self.player_resigned.clone() {
             return match resigned_player.eq(&players[0]) {
-                true => Some(players[1].clone()),
-                false => Some(players[0].clone()),
+                true => GameOutcome::Finished(Winner(players[1].clone())),
+                false => GameOutcome::Finished(Winner(players[0].clone())),
             };
         }
 
@@ -129,11 +133,11 @@ impl TurnBasedGame for TicTacToe {
             || diag_down == (-1 * BOARD_SIZE as i32)
             || diag_up == (-1 * BOARD_SIZE as i32);
         if player_1_victory {
-            return Some(players[0].clone());
+            return GameOutcome::Finished(Winner(players[0].clone()));
         } else if player_2_victory {
-            return Some(players[1].clone());
+            return GameOutcome::Finished(Winner(players[1].clone()));
         }
-        return None;
+        return GameOutcome::Ongoing;
     }
 }
 

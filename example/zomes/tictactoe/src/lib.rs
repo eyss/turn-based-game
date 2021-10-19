@@ -4,7 +4,7 @@ use hdk::prelude::*;
 
 mod tictactoe;
 
-use tictactoe::{Piece, TicTacToe, TicTacToeMove};
+use tictactoe::{Piece, TicTacToe, TicTacToeMove, Winner};
 
 entry_defs![GameMoveEntry::entry_def(), GameEntry::entry_def()];
 
@@ -46,8 +46,8 @@ fn place_piece(
 }
 
 #[hdk_extern]
-fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<AgentPubKeyB64>> {
-    let winner = get_game_winner::<TicTacToe>(game_hash.into())?;
+fn get_outcome(game_hash: EntryHashB64) -> ExternResult<GameOutcome<Winner>> {
+    let winner = hc_mixin_turn_based_game::get_game_outcome::<TicTacToe>(game_hash.into())?;
 
     Ok(winner)
 }

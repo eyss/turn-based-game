@@ -6,9 +6,9 @@
     "tests"
   ],
   "scripts": {
-    "start": "npm run build:happ && cross-env HC_PORT=$(port) concurrently -k \"npm run start:happ\" \"npm run start -w ui\"",
+    "start": "npm run build:happ && cross-env HC_PORT=$(port) concurrently -k \"npm run start:happ\" \"npm run start -w @eyss/turn-based-game\"",
     "test": "npm run build:happ && npm t -w tests",
-    "start:happ": "hc sandbox clean && RUST_LOG=warn hc s generate ./example/workdir/example-elo.happ --run=$HC_PORT -a my-app network mdns",
+    "start:happ": "hc sandbox clean && RUST_LOG=warn hc s generate ./example/workdir/example-turn-based-game.happ --run=$HC_PORT -a my-app network mdns",
     "package": "npm run build:happ && npm run package:ui && hc web-app pack workdir",
     "package:ui": "npm run build -w ui && cd ui/dist && bestzip ../dist.zip *",
     "build:happ": "npm run build:dnas && hc app pack ./example/workdir",

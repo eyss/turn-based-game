@@ -6,3 +6,5 @@ properties: ~
 zomes:
   - name: tictactoe
     bundled: ../../target/wasm32-unknown-unknown/release/tictactoe.wasm
+  - name: profiles
+    bundled: ../../target/wasm32-unknown-unknown/release/profiles.wasm

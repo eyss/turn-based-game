@@ -18,6 +18,13 @@ pub fn init_turn_based_games() -> ExternResult<InitCallbackResult> {
 macro_rules! mixin_turn_based_game {
     ( $turn_based_game:ty ) => {
         #[hdk_extern]
+        fn get_my_current_games(
+            _: (),
+        ) -> ExternResult<std::collections::BTreeMap<EntryHashB64, $crate::GameEntry>> {
+            $crate::get_my_current_games()
+        }
+
+        #[hdk_extern]
         fn get_game_state(game_hash: EntryHashB64) -> ExternResult<$turn_based_game> {
             $crate::get_game_state::<$turn_based_game>(game_hash.into())
         }

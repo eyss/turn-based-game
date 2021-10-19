@@ -4,6 +4,7 @@ use hdk::prelude::*;
 use super::GameMoveEntry;
 use crate::game::{apply_move, build_game_state, GameEntry};
 use crate::turn_based_game::TurnBasedGame;
+use crate::GameOutcome;
 
 /**
 * Validates the move, getting the game
@@ -64,13 +65,11 @@ pub fn validate_game_move_entry<G: TurnBasedGame>(
 
         let mut game_state = build_game_state::<G>(&game, &ordered_moves)?;
 
-        // Get the winner
-        let winner = game_state.get_winner(game.players.clone());
+        // Get the outcome of the game
 
-        if let Some(winner_address) = winner {
+        if let GameOutcome::Finished(_) = game_state.outcome(game.players.clone()) {
             return Err(WasmError::Guest(format!(
-                "Game is already finished: {} is the winner",
-                winner_address
+                "Game is already finished: cannot make any more moves",
             )));
         }
 

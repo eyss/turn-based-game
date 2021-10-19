@@ -1,0 +1,12 @@
+[package]
+name = "profiles"
+version = "0.0.1"
+authors = [ "guillem_cordoba" ]
+edition = "2018"
+
+[lib]
+name = "profiles"
+crate-type = [ "cdylib", "rlib" ]
+
+[dependencies]
+hc_zome_profiles = {git = "https://github.com/holochain-open-dev/profiles", rev = "499ba7a06028c9df9ed3ca6295aed77f68675a14"}

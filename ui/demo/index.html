@@ -9,7 +9,7 @@
     </style>
   </head>
   <body>
-    <elo-test></elo-test>
+    <turn-based-game-test></turn-based-game-test>
 
     <script type="module">
       import {
@@ -24,14 +24,13 @@
       import { ContextProvider } from '@lit-labs/context';
 
       import {
-        GameResultsHistory,
-        EloRanking,
-        EloStore,
-        EloService,
-        eloStoreContext,
+        TurnBasedGameStore,
+        TurnBasedGameService,
+        MyCurrentGames,
+        turnBasedGameStoreContext,
       } from '../dist';
 
-      class EloTest extends ScopedElementsMixin(LitElement) {
+      class TurnBasedGameTest extends ScopedElementsMixin(LitElement) {
         static get properties() {
           return {
             loaded: {
@@ -51,11 +50,11 @@
           const cellData = appInfo.cell_data[0];
           const cellClient = new HolochainClient(appWebsocket, cellData);
           const profileStore = new ProfilesStore(cellClient);
-          const eloService = new EloService(cellClient, 'elo');
-          const eloStore = new EloStore(eloService, profileStore);
+          const eloService = new TurnBasedGameService(cellClient, 'tictactoe');
+          const eloStore = new TurnBasedGameStore(eloService, profileStore);
 
           new ContextProvider(this, profilesStoreContext, profileStore);
-          new ContextProvider(this, eloStoreContext, eloStore);
+          new ContextProvider(this, turnBasedGameStoreContext, eloStore);
 
           this.loaded = true;
         }
@@ -64,8 +63,7 @@
           if (!this.loaded) return html`<span>Loading...</span>`;
           return html`
             <profile-prompt>
-              <game-results-history></game-results-history>
-              <elo-ranking></elo-ranking>
+              <my-current-games></my-current-games>
             </profile-prompt>
           `;
         }
@@ -73,13 +71,12 @@
         static get scopedElements() {
           return {
             'profile-prompt': ProfilePrompt,
-            'game-results-history': GameResultsHistory,
-            'elo-ranking': EloRanking,
+            'my-current-games': MyCurrentGames,
           };
         }
       }
 
-      customElements.define('elo-test', EloTest);
+      customElements.define('turn-based-game-test', TurnBasedGameTest);
     </script>
   </body>
 </html>
