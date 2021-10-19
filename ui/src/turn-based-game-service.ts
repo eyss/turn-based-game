@@ -1,12 +1,7 @@
-import {
-  AgentPubKeyB64,
-  Dictionary,
-  EntryHashB64,
-  HeaderHashB64,
-} from '@holochain-open-dev/core-types';
+import { Dictionary, EntryHashB64 } from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
 
-import { GameEntry, GameMoveEntry, MoveInfo } from './types';
+import { GameEntry, MoveInfo } from './types';
 
 export class TurnBasedGameService {
   constructor(public cellClient: CellClient, protected zomeName: string) {}

@@ -11,6 +11,7 @@
   },
   "scripts": {
     "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "analyze": "cem analyze --litelement",
     "build": "tsc && npm run analyze -- --exclude dist",
     "prepublish": "tsc && npm run analyze -- --exclude dist",
     "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
@@ -32,6 +33,7 @@
     "svelte": "^3.43.2"
   },
   "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.4.17",
     "@open-wc/eslint-config": "^4.3.0",
     "@rollup/plugin-commonjs": "18.0.0",
     "@rollup/plugin-replace": "^3.0.0",
@@ -61,6 +63,7 @@
       "@typescript-eslint"
     ],
     "rules": {
+      "no-param-reassign": "off",
       "no-empty-function": "off",
       "no-shadow": "off",
       "no-useless-constructor": "off",

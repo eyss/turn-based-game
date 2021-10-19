@@ -2,7 +2,7 @@ import { html, LitElement } from 'lit';
 import { state } from 'lit/decorators.js';
 import { contextProvided } from '@lit-labs/context';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { AgentPubKeyB64, Dictionary } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 
 import {
   Card,
@@ -13,11 +13,11 @@ import {
   CircularProgress,
 } from '@scoped-elements/material-web';
 import { StoreSubscriber } from 'lit-svelte-stores';
+import { AgentAvatar } from '@holochain-open-dev/profiles';
 
 import { sharedStyles } from '../shared-styles';
 import { turnBasedGameStoreContext } from '../context';
 import { TurnBasedGameStore } from '../turn-based-game-store';
-import { AgentAvatar } from '@holochain-open-dev/profiles';
 
 export class MyCurrentGames extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: turnBasedGameStoreContext })
