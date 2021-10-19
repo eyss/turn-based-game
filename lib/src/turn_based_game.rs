@@ -23,7 +23,7 @@ pub trait TurnBasedGame {
     fn max_players() -> Option<usize>;
 
     // Constructs the initial state for the game
-    fn initial(players: &Vec<AgentPubKeyB64>) -> Self;
+    fn initial(players: Vec<AgentPubKeyB64>) -> Self;
 
     // Applies the move to the game object, transforming it
     // If the move is invalid, it should return an error
