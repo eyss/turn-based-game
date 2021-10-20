@@ -34,11 +34,15 @@ const getMyCurrentGames = (caller) => () =>
   caller.call("tictactoe", "get_my_current_games", null);
 
 const createMove = (caller) => (gameHash, previousMoveHash, x, y) =>
-  caller.call("tictactoe", "place_piece", {
+  caller.call("tictactoe", "make_move", {
     game_hash: gameHash,
     previous_move_hash: previousMoveHash,
-    x,
-    y,
+    game_move: {
+      Place: {
+        x,
+        y,
+      },
+    },
   });
 
 const getOutcome = (caller) => (gameHash) =>

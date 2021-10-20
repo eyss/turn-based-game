@@ -66,6 +66,24 @@ export class TurnBasedGameStore<M> {
 
   /** Backend actions */
 
+  async fetchGame(gameHash: EntryHashB64) {
+    // Game entries can't change, if we have it cached do nothing
+    const games = get(this.#gamesByEntryHash);
+
+    if (games[gameHash]) return;
+
+    const game = await this.turnBasedGameService.getGame(gameHash);
+
+    this.#gamesByEntryHash.update(games => {
+      games[gameHash] = {
+        entry: game,
+        moves: [],
+      };
+
+      return games;
+    });
+  }
+
   async fetchMyCurrentGames() {
     const myCurrentGames = await this.turnBasedGameService.getMyCurrentGames();
 
@@ -85,6 +103,48 @@ export class TurnBasedGameStore<M> {
 
       return games;
     });
+  }
+
+  async makeMove(gameHash: EntryHashB64, move: M): Promise<HeaderHashB64> {
+    const game = get(this.#gamesByEntryHash)[gameHash];
+
+    if (!game)
+      throw new Error('Error making a move: game has not been fetched yet');
+
+    const newMoveIndex = game.moves.length;
+    const previousMove = game.moves[newMoveIndex - 1];
+    const previousMoveHash = previousMove
+      ? previousMove.header_hash
+      : undefined;
+
+    const move_entry: GameMoveEntry<M> = {
+      author_pub_key: this.myAgentPubKey,
+      game_hash: gameHash,
+      game_move: move,
+      previous_move_hash: previousMoveHash,
+    };
+    const m: MoveInfo<M> = {
+      header_hash: undefined as any,
+      game_move_entry: move_entry,
+    };
+
+    this.#gamesByEntryHash.update(games => {
+      games[gameHash].moves.push(m);
+      return games;
+    });
+
+    const header_hash = await this.turnBasedGameService.makeMove(
+      gameHash,
+      previousMoveHash,
+      move
+    );
+
+    this.#gamesByEntryHash.update(games => {
+      games[gameHash].moves[newMoveIndex].header_hash = header_hash;
+      return games;
+    });
+
+    return header_hash;
   }
 
   async fetchGameMoves(gameHash: EntryHashB64) {

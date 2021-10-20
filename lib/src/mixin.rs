@@ -1,4 +1,7 @@
 use hdk::prelude::*;
+use hdk::prelude::holo_hash::*;
+
+use crate::TurnBasedGame;
 
 pub fn init_turn_based_games() -> ExternResult<InitCallbackResult> {
     // grant unrestricted access to accept_cap_claim so other agents can send us claims
@@ -14,6 +17,13 @@ pub fn init_turn_based_games() -> ExternResult<InitCallbackResult> {
     Ok(InitCallbackResult::Pass)
 }
 
+#[derive(Clone, Deserialize, Serialize, Debug)]
+pub struct MakeMoveInput<G: TurnBasedGame> {
+    pub game_hash: EntryHashB64,
+    pub previous_move_hash: Option<HeaderHashB64>,
+    pub game_move: G::GameMove,
+}
+
 #[macro_export]
 macro_rules! mixin_turn_based_game {
     ( $turn_based_game:ty ) => {
@@ -25,8 +35,24 @@ macro_rules! mixin_turn_based_game {
         }
 
         #[hdk_extern]
+        fn make_move(
+            input: $crate::MakeMoveInput<$turn_based_game>,
+        ) -> ExternResult<hdk::prelude::holo_hash::HeaderHashB64> {
+            $crate::create_move::<$turn_based_game>(
+                input.game_hash,
+                input.previous_move_hash,
+                input.game_move,
+            )
+        }
+
+        #[hdk_extern]
         fn get_game_moves(game_hash: EntryHashB64) -> ExternResult<Vec<$crate::MoveInfo>> {
             $crate::get_game_moves(game_hash.into())
+        }
+
+        #[hdk_extern]
+        fn get_game(game_hash: EntryHashB64) -> ExternResult<$crate::GameEntry> {
+            $crate::get_game(game_hash)
         }
 
         #[hdk_extern]

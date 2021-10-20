@@ -13,5 +13,5 @@ pub use game::{
 pub use game_move::{
     create_move, get_game_moves, validate_game_move_entry, GameMoveEntry, MoveInfo,
 };
-pub use mixin::init_turn_based_games;
+pub use mixin::*;
 pub use turn_based_game::*;
