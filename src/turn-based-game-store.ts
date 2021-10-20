@@ -72,6 +72,9 @@ export class TurnBasedGameStore<M> {
 
     const game = await this.turnBasedGameService.getGame(gameHash);
 
+    // We asume that they are going to need the profiles
+    await this.profilesStore.fetchAgentsProfiles(game.players);
+
     this.#gamesByEntryHash.update(games => {
       games[gameHash] = {
         entry: game,

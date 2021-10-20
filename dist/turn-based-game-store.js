@@ -42,6 +42,8 @@ export class TurnBasedGameStore {
         if (games[gameHash])
             return;
         const game = await this.turnBasedGameService.getGame(gameHash);
+        // We asume that they are going to need the profiles
+        await this.profilesStore.fetchAgentsProfiles(game.players);
         __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
             games[gameHash] = {
                 entry: game,
