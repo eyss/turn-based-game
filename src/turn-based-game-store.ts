@@ -105,6 +105,46 @@ export class TurnBasedGameStore<M> {
     });
   }
 
+  async makeMove(gameHash: EntryHashB64, move: M) {
+    const game = get(this.#gamesByEntryHash)[gameHash];
+
+    if (!game)
+      throw new Error('Error making a move: game has not been fetched yet');
+
+    const newMoveIndex = game.moves.length;
+    const previousMove = game.moves[newMoveIndex - 1];
+    const previousMoveHash = previousMove
+      ? previousMove.header_hash
+      : undefined;
+
+    const move_entry: GameMoveEntry<M> = {
+      author_pub_key: this.myAgentPubKey,
+      game_hash: gameHash,
+      game_move: move,
+      previous_move_hash: previousMoveHash,
+    };
+    const m: MoveInfo<M> = {
+      header_hash: undefined as any,
+      game_move_entry: move_entry,
+    };
+
+    this.#gamesByEntryHash.update(games => {
+      games[gameHash].moves.push(m);
+      return games;
+    });
+
+    const header_hash = await this.turnBasedGameService.makeMove(
+      gameHash,
+      previousMoveHash,
+      move
+    );
+
+    this.#gamesByEntryHash.update(games => {
+      games[gameHash].moves[newMoveIndex].header_hash = header_hash;
+      return games;
+    });
+  }
+
   async fetchGameMoves(gameHash: EntryHashB64) {
     const moves = await this.turnBasedGameService.getGameMoves(gameHash);
 

@@ -18,6 +18,7 @@ export declare class TurnBasedGameStore<M> {
     /** Backend actions */
     fetchGame(gameHash: EntryHashB64): Promise<void>;
     fetchMyCurrentGames(): Promise<void>;
+    makeMove(gameHash: EntryHashB64, move: M): Promise<void>;
     fetchGameMoves(gameHash: EntryHashB64): Promise<void>;
     private handleNewGameStarted;
     private handleNewMove;

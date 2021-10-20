@@ -123,6 +123,36 @@
             },
             {
               "kind": "method",
+              "name": "makeMove",
+              "privacy": "public",
+              "return": {
+                "type": {
+                  "text": "Promise<HeaderHashB64>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                },
+                {
+                  "name": "previousMoveHash",
+                  "type": {
+                    "text": "HeaderHashB64 | undefined"
+                  }
+                },
+                {
+                  "name": "move",
+                  "type": {
+                    "text": "any"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "getMyCurrentGames",
               "privacy": "public",
               "return": {
@@ -260,6 +290,24 @@
             {
               "kind": "method",
               "name": "fetchMyCurrentGames"
+            },
+            {
+              "kind": "method",
+              "name": "makeMove",
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                },
+                {
+                  "name": "move",
+                  "type": {
+                    "text": "M"
+                  }
+                }
+              ]
             },
             {
               "kind": "method",

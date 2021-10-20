@@ -7,6 +7,13 @@ export class TurnBasedGameService {
     getGameMoves(gameHash) {
         return this.callZome('get_game_moves', gameHash);
     }
+    makeMove(gameHash, previousMoveHash, move) {
+        return this.callZome('make_move', {
+            game_hash: gameHash,
+            previous_move_hash: previousMoveHash,
+            game_move: move,
+        });
+    }
     getMyCurrentGames() {
         return this.callZome('get_my_current_games', null);
     }

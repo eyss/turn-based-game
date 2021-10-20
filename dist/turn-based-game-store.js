@@ -64,6 +64,35 @@ export class TurnBasedGameStore {
             return games;
         });
     }
+    async makeMove(gameHash, move) {
+        const game = get(__classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f"))[gameHash];
+        if (!game)
+            throw new Error('Error making a move: game has not been fetched yet');
+        const newMoveIndex = game.moves.length;
+        const previousMove = game.moves[newMoveIndex - 1];
+        const previousMoveHash = previousMove
+            ? previousMove.header_hash
+            : undefined;
+        const move_entry = {
+            author_pub_key: this.myAgentPubKey,
+            game_hash: gameHash,
+            game_move: move,
+            previous_move_hash: previousMoveHash,
+        };
+        const m = {
+            header_hash: undefined,
+            game_move_entry: move_entry,
+        };
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            games[gameHash].moves.push(m);
+            return games;
+        });
+        const header_hash = await this.turnBasedGameService.makeMove(gameHash, previousMoveHash, move);
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            games[gameHash].moves[newMoveIndex].header_hash = header_hash;
+            return games;
+        });
+    }
     async fetchGameMoves(gameHash) {
         const moves = await this.turnBasedGameService.getGameMoves(gameHash);
         __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {

@@ -1,4 +1,8 @@
-import { Dictionary, EntryHashB64 } from '@holochain-open-dev/core-types';
+import {
+  Dictionary,
+  EntryHashB64,
+  HeaderHashB64,
+} from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
 
 import { GameEntry, MoveInfo } from './types';
@@ -10,6 +14,18 @@ export class TurnBasedGameService {
 
   public getGameMoves(gameHash: EntryHashB64): Promise<Array<MoveInfo<any>>> {
     return this.callZome('get_game_moves', gameHash);
+  }
+
+  public makeMove(
+    gameHash: EntryHashB64,
+    previousMoveHash: HeaderHashB64 | undefined,
+    move: any
+  ): Promise<HeaderHashB64> {
+    return this.callZome('make_move', {
+      game_hash: gameHash,
+      previous_move_hash: previousMoveHash,
+      game_move: move,
+    });
   }
 
   public getMyCurrentGames(): Promise<Dictionary<GameEntry>> {
