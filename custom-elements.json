@@ -133,6 +133,24 @@
             },
             {
               "kind": "method",
+              "name": "getGame",
+              "privacy": "public",
+              "return": {
+                "type": {
+                  "text": "Promise<GameEntry>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "callZome",
               "privacy": "private",
               "return": {
@@ -228,8 +246,20 @@
             },
             {
               "kind": "method",
-              "name": "fetchMyCurrentGames",
+              "name": "fetchGame",
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                }
+              ],
               "description": "Backend actions"
+            },
+            {
+              "kind": "method",
+              "name": "fetchMyCurrentGames"
             },
             {
               "kind": "method",

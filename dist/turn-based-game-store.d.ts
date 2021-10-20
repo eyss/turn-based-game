@@ -16,6 +16,7 @@ export declare class TurnBasedGameStore<M> {
     constructor(turnBasedGameService: TurnBasedGameService, profilesStore: ProfilesStore);
     opponent(game: GameEntry): AgentPubKeyB64;
     /** Backend actions */
+    fetchGame(gameHash: EntryHashB64): Promise<void>;
     fetchMyCurrentGames(): Promise<void>;
     fetchGameMoves(gameHash: EntryHashB64): Promise<void>;
     private handleNewGameStarted;

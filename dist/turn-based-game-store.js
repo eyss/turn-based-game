@@ -36,6 +36,20 @@ export class TurnBasedGameStore {
         return game.players.find(p => p !== this.myAgentPubKey);
     }
     /** Backend actions */
+    async fetchGame(gameHash) {
+        // Game entries can't change, if we have it cached do nothing
+        const games = get(__classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f"));
+        if (games[gameHash])
+            return;
+        const game = await this.turnBasedGameService.getGame(gameHash);
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            games[gameHash] = {
+                entry: game,
+                moves: [],
+            };
+            return games;
+        });
+    }
     async fetchMyCurrentGames() {
         const myCurrentGames = await this.turnBasedGameService.getMyCurrentGames();
         const opponents = Object.values(myCurrentGames).map(game => this.opponent(game));

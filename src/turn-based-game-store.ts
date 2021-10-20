@@ -66,6 +66,24 @@ export class TurnBasedGameStore<M> {
 
   /** Backend actions */
 
+  async fetchGame(gameHash: EntryHashB64) {
+    // Game entries can't change, if we have it cached do nothing
+    const games = get(this.#gamesByEntryHash);
+
+    if (games[gameHash]) return;
+
+    const game = await this.turnBasedGameService.getGame(gameHash);
+
+    this.#gamesByEntryHash.update(games => {
+      games[gameHash] = {
+        entry: game,
+        moves: [],
+      };
+
+      return games;
+    });
+  }
+
   async fetchMyCurrentGames() {
     const myCurrentGames = await this.turnBasedGameService.getMyCurrentGames();
 

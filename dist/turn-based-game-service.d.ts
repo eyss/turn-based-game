@@ -8,5 +8,6 @@ export declare class TurnBasedGameService {
     /** These functions **must** match the functions defined in lib/src/mixin.rs */
     getGameMoves(gameHash: EntryHashB64): Promise<Array<MoveInfo<any>>>;
     getMyCurrentGames(): Promise<Dictionary<GameEntry>>;
+    getGame(gameHash: EntryHashB64): Promise<GameEntry>;
     private callZome;
 }

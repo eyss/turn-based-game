@@ -16,6 +16,10 @@ export class TurnBasedGameService {
     return this.callZome('get_my_current_games', null);
   }
 
+  public getGame(gameHash: EntryHashB64): Promise<GameEntry> {
+    return this.callZome('get_game', gameHash);
+  }
+
   private callZome(fnName: string, payload: any): Promise<any> {
     return this.cellClient.callZome(this.zomeName, fnName, payload);
   }
