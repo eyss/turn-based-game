@@ -294,6 +294,11 @@
             {
               "kind": "method",
               "name": "makeMove",
+              "return": {
+                "type": {
+                  "text": "Promise<HeaderHashB64>"
+                }
+              },
               "parameters": [
                 {
                   "name": "gameHash",

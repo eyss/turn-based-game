@@ -105,7 +105,7 @@ export class TurnBasedGameStore<M> {
     });
   }
 
-  async makeMove(gameHash: EntryHashB64, move: M) {
+  async makeMove(gameHash: EntryHashB64, move: M): Promise<HeaderHashB64> {
     const game = get(this.#gamesByEntryHash)[gameHash];
 
     if (!game)
@@ -143,6 +143,8 @@ export class TurnBasedGameStore<M> {
       games[gameHash].moves[newMoveIndex].header_hash = header_hash;
       return games;
     });
+
+    return header_hash;
   }
 
   async fetchGameMoves(gameHash: EntryHashB64) {

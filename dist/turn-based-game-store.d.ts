@@ -1,4 +1,4 @@
-import { AgentPubKeyB64, Dictionary, EntryHashB64 } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, Dictionary, EntryHashB64, HeaderHashB64 } from '@holochain-open-dev/core-types';
 import { ProfilesStore } from '@holochain-open-dev/profiles';
 import { TurnBasedGameService } from './turn-based-game-service';
 import { GameEntry, MoveInfo } from './types';
@@ -18,7 +18,7 @@ export declare class TurnBasedGameStore<M> {
     /** Backend actions */
     fetchGame(gameHash: EntryHashB64): Promise<void>;
     fetchMyCurrentGames(): Promise<void>;
-    makeMove(gameHash: EntryHashB64, move: M): Promise<void>;
+    makeMove(gameHash: EntryHashB64, move: M): Promise<HeaderHashB64>;
     fetchGameMoves(gameHash: EntryHashB64): Promise<void>;
     private handleNewGameStarted;
     private handleNewMove;

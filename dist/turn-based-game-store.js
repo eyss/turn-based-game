@@ -92,6 +92,7 @@ export class TurnBasedGameStore {
             games[gameHash].moves[newMoveIndex].header_hash = header_hash;
             return games;
         });
+        return header_hash;
     }
     async fetchGameMoves(gameHash) {
         const moves = await this.turnBasedGameService.getGameMoves(gameHash);
