@@ -32,7 +32,7 @@ export class MyCurrentGames extends ScopedElementsMixin(LitElement) {
         return html `<div class="flex-scrollable-parent">
       <div class="flex-scrollable-container">
         <div class="flex-scrollable-y">
-          <mwc-list disabled>
+          <mwc-list noninteractive>
             ${Object.entries(this._myGames.value).map(([hash, game]) => html ` <div class="row center-content">
                   <mwc-list-item twoline style="flex: 1;" graphic="avatar">
                     <agent-avatar
