@@ -19,7 +19,7 @@ export class TurnBasedGameStore {
         });
         this.turnBasedGameService.cellClient.addSignalHandler(signal => {
             if (signal.data.payload.type === 'GameStarted') {
-                this.handleNewGameStarted(signal.data.payload.game_hash, signal.data.payload.game_hash);
+                this.handleNewGameStarted(signal.data.payload.game_hash, signal.data.payload.game_entry);
             }
             else if (signal.data.payload.type === 'NewMove') {
                 this.handleNewMove(signal.data.payload.header_hash, signal.data.payload.game_move_entry);

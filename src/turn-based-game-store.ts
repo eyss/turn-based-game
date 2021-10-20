@@ -17,9 +17,7 @@ export interface GameState<M> {
 }
 
 export class TurnBasedGameStore<M> {
-  #gamesByEntryHash: Writable<{
-    [key: string]: GameState<M>;
-  }> = writable({});
+  #gamesByEntryHash: Writable<Dictionary<GameState<M>>> = writable({});
 
   public game(gameHash: EntryHashB64) {
     return derived(this.#gamesByEntryHash, games => games[gameHash]);
@@ -49,7 +47,7 @@ export class TurnBasedGameStore<M> {
       if (signal.data.payload.type === 'GameStarted') {
         this.handleNewGameStarted(
           signal.data.payload.game_hash,
-          signal.data.payload.game_hash
+          signal.data.payload.game_entry
         );
       } else if (signal.data.payload.type === 'NewMove') {
         this.handleNewMove(

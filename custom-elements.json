@@ -231,7 +231,7 @@
               "name": "#gamesByEntryHash",
               "privacy": "private",
               "type": {
-                "text": "Writable<{\n    [key: string]: GameState<M>;\n  }>"
+                "text": "Writable<Dictionary<GameState<M>>>"
               }
             },
             {
