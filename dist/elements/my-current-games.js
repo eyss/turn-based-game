@@ -37,7 +37,7 @@ export class MyCurrentGames extends ScopedElementsMixin(LitElement) {
                   <mwc-list-item twoline style="flex: 1;" graphic="avatar">
                     <agent-avatar
                       slot="graphic"
-                      .hash=${this._store.opponent(game)}
+                      .agentPubKey=${this._store.opponent(game)}
                     ></agent-avatar>
 
                     <span>${this.nicknameOf(this._store.opponent(game))} </span>
