@@ -93,11 +93,9 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   t.deepEqual(result, null);
 
   result = await getState(alice)(gameAddress);
-  t.deepEqual(result, {
-    player_1: [],
-    player_2: [],
-    player_resigned: null,
-  });
+  t.deepEqual(result.player_1[1], []);
+  t.deepEqual(result.player_2[1], []);
+  t.deepEqual(result.player_resigned, null);
 
   try {
     result = await createMove(alice)(gameAddress, null, 0, 0);
@@ -144,18 +142,17 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   t.deepEqual(result, 0);
 
   result = await getState(alice)(gameAddress);
-  t.deepEqual(result, {
-    player_1: [
-      { x: 0, y: 0 },
-      { x: 0, y: 1 },
-      { x: 0, y: 2 },
-    ],
-    player_2: [
-      { x: 1, y: 0 },
-      { x: 1, y: 1 },
-    ],
-    player_resigned: null,
-  });
+  t.deepEqual(
+    result.player_1[1],
+    { x: 0, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: 2 }
+  );
+  t.deepEqual(result.player_2[1], [
+    { x: 1, y: 0 },
+    { x: 1, y: 1 },
+  ]);
+  t.deepEqual(result.player_resigned, null);
 
   try {
     result = await createMove(alice)(gameAddress, lastMoveHash, 2, 2);
