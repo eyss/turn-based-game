@@ -32,9 +32,21 @@ export class MyCurrentGames extends ScopedElementsMixin(LitElement) {
         return html `<div class="flex-scrollable-parent">
       <div class="flex-scrollable-container">
         <div class="flex-scrollable-y">
-          <mwc-list noninteractive>
+          <mwc-list>
             ${Object.entries(this._myGames.value).map(([hash, game]) => html ` <div class="row center-content">
-                  <mwc-list-item twoline style="flex: 1;" graphic="avatar">
+                  <mwc-list-item
+                    hasMeta
+                    twoline
+                    style="flex: 1;"
+                    graphic="avatar"
+                    @click=${() => this.dispatchEvent(new CustomEvent('open-game', {
+            detail: {
+                gameHash: hash,
+            },
+            composed: true,
+            bubbles: true,
+        }))}
+                  >
                     <agent-avatar
                       slot="graphic"
                       .agentPubKey=${this._store.opponent(game)}
@@ -45,17 +57,9 @@ export class MyCurrentGames extends ScopedElementsMixin(LitElement) {
                       >Started at
                       ${new Date(game.created_at).toLocaleString()}</span
                     >
+
+                    <mwc-icon slot="meta">launch</mwc-icon>
                   </mwc-list-item>
-                  <mwc-button
-                    label="OPEN"
-                    @click=${() => this.dispatchEvent(new CustomEvent('open-game', {
-            detail: {
-                gameHash: hash,
-            },
-            composed: true,
-            bubbles: true,
-        }))}
-                  ></mwc-button>
                 </div>`)}
           </mwc-list>
         </div>
