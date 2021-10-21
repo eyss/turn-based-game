@@ -4,7 +4,7 @@ use hdk::prelude::*;
 
 mod tictactoe;
 
-use tictactoe::{TicTacToe, Winner};
+use tictactoe::TicTacToe;
 
 entry_defs![GameMoveEntry::entry_def(), GameEntry::entry_def()];
 
@@ -26,10 +26,10 @@ fn get_game_state(game_hash: EntryHashB64) -> ExternResult<TicTacToe> {
 }
 
 #[hdk_extern]
-fn get_outcome(game_hash: EntryHashB64) -> ExternResult<GameOutcome<Winner>> {
-    let winner = hc_mixin_turn_based_game::get_game_outcome::<TicTacToe>(game_hash.into())?;
+fn get_winner(game_hash: EntryHashB64) -> ExternResult<Option<u8>> {
+    let state = hc_mixin_turn_based_game::get_game_state::<TicTacToe>(game_hash.into())?;
 
-    Ok(winner)
+    Ok(state.winner())
 }
 
 mixin_turn_based_game!(TicTacToe);

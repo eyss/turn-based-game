@@ -1,4 +1,4 @@
-use hc_mixin_turn_based_game::{GameOutcome, TurnBasedGame};
+use hc_mixin_turn_based_game::{GameStatus, TurnBasedGame};
 use hdk::prelude::holo_hash::AgentPubKeyB64;
 use hdk::prelude::*;
 
@@ -16,9 +16,6 @@ pub enum TicTacToeMove {
     Place(Piece),
     Resign,
 }
-
-#[derive(Clone, Debug, Serialize, Deserialize, SerializedBytes)]
-pub struct Winner(AgentPubKeyB64);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Piece {
@@ -49,7 +46,6 @@ impl Piece {
 
 impl TurnBasedGame for TicTacToe {
     type GameMove = TicTacToeMove;
-    type GameResult = Winner;
 
     fn min_players() -> Option<usize> {
         Some(2)
@@ -89,14 +85,51 @@ impl TurnBasedGame for TicTacToe {
         Ok(())
     }
 
-    fn outcome(&self, players: Vec<AgentPubKeyB64>) -> GameOutcome<Winner> {
-        if let Some(resigned_player) = self.player_resigned.clone() {
-            return match resigned_player.eq(&players[0]) {
-                true => GameOutcome::Finished(Winner(players[1].clone())),
-                false => GameOutcome::Finished(Winner(players[0].clone())),
-            };
+    fn status(&self, _players: Vec<AgentPubKeyB64>) -> GameStatus {
+        if let Some(_) = self.player_resigned.clone() {
+            return GameStatus::Finished;
         }
 
+        if let Some(_) = self.winner() {
+            return GameStatus::Finished;
+        }
+        return GameStatus::Ongoing;
+    }
+}
+
+impl TicTacToe {
+    pub fn to_dense(&self) -> [[u8; 8]; 8] {
+        let mut board = [[0u8; 8]; 8];
+        self.player_1.iter().for_each(|piece| {
+            board[piece.x][piece.y] = 1;
+        });
+        self.player_2.iter().for_each(|piece| {
+            board[piece.x][piece.y] = 2;
+        });
+        board
+    }
+
+    pub fn _from_dense(board: [[u8; 8]; 8]) -> Self {
+        let mut player_1_pieces = Vec::new();
+        let mut player_2_pieces = Vec::new();
+        board.iter().enumerate().for_each(|(x, row)| {
+            row.iter().enumerate().for_each(|(y, square)| {
+                if *square == 1 {
+                    player_1_pieces.push(Piece { x, y });
+                } else if *square == 2 {
+                    player_2_pieces.push(Piece { x, y });
+                }
+            })
+        });
+
+        TicTacToe {
+            player_1: player_1_pieces,
+            player_2: player_2_pieces,
+            player_resigned: None,
+        }
+    }
+
+    pub fn winner(&self) -> Option<u8> {
         let board = self.to_dense();
 
         // check if this resulted in a player victory
@@ -132,44 +165,13 @@ impl TurnBasedGame for TicTacToe {
             || down.iter().any(|e| *e == (-1 * BOARD_SIZE as i32))
             || diag_down == (-1 * BOARD_SIZE as i32)
             || diag_up == (-1 * BOARD_SIZE as i32);
+
         if player_1_victory {
-            return GameOutcome::Finished(Winner(players[0].clone()));
+            return Some(0);
         } else if player_2_victory {
-            return GameOutcome::Finished(Winner(players[1].clone()));
-        }
-        return GameOutcome::Ongoing;
-    }
-}
-
-impl TicTacToe {
-    pub fn to_dense(&self) -> [[u8; 8]; 8] {
-        let mut board = [[0u8; 8]; 8];
-        self.player_1.iter().for_each(|piece| {
-            board[piece.x][piece.y] = 1;
-        });
-        self.player_2.iter().for_each(|piece| {
-            board[piece.x][piece.y] = 2;
-        });
-        board
-    }
-
-    pub fn _from_dense(board: [[u8; 8]; 8]) -> Self {
-        let mut player_1_pieces = Vec::new();
-        let mut player_2_pieces = Vec::new();
-        board.iter().enumerate().for_each(|(x, row)| {
-            row.iter().enumerate().for_each(|(y, square)| {
-                if *square == 1 {
-                    player_1_pieces.push(Piece { x, y });
-                } else if *square == 2 {
-                    player_2_pieces.push(Piece { x, y });
-                }
-            })
-        });
-
-        TicTacToe {
-            player_1: player_1_pieces,
-            player_2: player_2_pieces,
-            player_resigned: None,
+            return Some(2);
+        } else {
+            return None;
         }
     }
 }

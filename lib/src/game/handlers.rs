@@ -2,7 +2,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use hdk::prelude::holo_hash::{AgentPubKeyB64, EntryHashB64};
 use hdk::prelude::*;
 
-use crate::{current_games, GameOutcome};
+use crate::current_games;
 use crate::{
     game_move::{self, GameMoveEntry},
     signal::{send_signal_to_players, SignalPayload},
@@ -42,18 +42,6 @@ pub fn create_game(players: Vec<AgentPubKeyB64>) -> ExternResult<EntryHashB64> {
     send_signal_to_players(game, signal)?;
 
     Ok(game_hash_b64)
-}
-
-/**
- * Gets the winner of the game
- */
-pub fn get_game_outcome<G: TurnBasedGame>(
-    game_hash: EntryHashB64,
-) -> ExternResult<GameOutcome<G::GameResult>> {
-    let game = get_game(game_hash.clone())?;
-    let game_state = get_game_state::<G>(game_hash)?;
-
-    Ok(game_state.outcome(game.players.clone()))
 }
 
 /**

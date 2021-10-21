@@ -45,8 +45,8 @@ const createMove = (caller) => (gameHash, previousMoveHash, x, y) =>
     },
   });
 
-const getOutcome = (caller) => (gameHash) =>
-  caller.call("tictactoe", "get_outcome", gameHash);
+const getWinner = (caller) => (gameHash) =>
+  caller.call("tictactoe", "get_winner", gameHash);
 
 const getState = (caller) => (gameHash) =>
   caller.call("tictactoe", "get_game_state", gameHash);
@@ -89,8 +89,8 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
 
   let gameAddress = result;
 
-  result = await getOutcome(alice)(gameAddress);
-  t.deepEqual(result, { Ongoing: null });
+  result = await getWinner(alice)(gameAddress);
+  t.deepEqual(result, null);
 
   result = await getState(alice)(gameAddress);
   t.deepEqual(result, {
@@ -140,8 +140,8 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   t.ok(lastMoveHash);
   await sleep(4000);
 
-  result = await getOutcome(alice)(gameAddress);
-  t.deepEqual(result, { Finished: bobAddress });
+  result = await getWinner(alice)(gameAddress);
+  t.deepEqual(result, 0);
 
   result = await getState(alice)(gameAddress);
   t.deepEqual(result, {

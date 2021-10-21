@@ -54,24 +54,15 @@ export class MyCurrentGames extends ScopedElementsMixin(LitElement) {
     return html`<div class="flex-scrollable-parent">
       <div class="flex-scrollable-container">
         <div class="flex-scrollable-y">
-          <mwc-list disabled>
+          <mwc-list>
             ${Object.entries(this._myGames.value).map(
               ([hash, game]) =>
                 html` <div class="row center-content">
-                  <mwc-list-item twoline style="flex: 1;" graphic="avatar">
-                    <agent-avatar
-                      slot="graphic"
-                      .hash=${this._store.opponent(game)}
-                    ></agent-avatar>
-
-                    <span>${this.nicknameOf(this._store.opponent(game))} </span>
-                    <span slot="secondary"
-                      >Started at
-                      ${new Date(game.created_at).toLocaleString()}</span
-                    >
-                  </mwc-list-item>
-                  <mwc-button
-                    label="OPEN"
+                  <mwc-list-item
+                    hasMeta
+                    twoline
+                    style="flex: 1;"
+                    graphic="avatar"
                     @click=${() =>
                       this.dispatchEvent(
                         new CustomEvent('open-game', {
@@ -82,7 +73,20 @@ export class MyCurrentGames extends ScopedElementsMixin(LitElement) {
                           bubbles: true,
                         })
                       )}
-                  ></mwc-button>
+                  >
+                    <agent-avatar
+                      slot="graphic"
+                      .agentPubKey=${this._store.opponent(game)}
+                    ></agent-avatar>
+
+                    <span>${this.nicknameOf(this._store.opponent(game))} </span>
+                    <span slot="secondary"
+                      >Started at
+                      ${new Date(game.created_at).toLocaleString()}</span
+                    >
+
+                    <mwc-icon slot="meta">launch</mwc-icon>
+                  </mwc-list-item>
                 </div>`
             )}
           </mwc-list>

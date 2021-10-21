@@ -2,8 +2,8 @@ use hdk::prelude::holo_hash::AgentPubKeyB64;
 use hdk::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum GameOutcome<GameResult> {
-    Finished(GameResult),
+pub enum GameStatus {
+    Finished,
     Ongoing,
 }
 
@@ -12,7 +12,6 @@ pub enum GameOutcome<GameResult> {
  */
 pub trait TurnBasedGame: TryFrom<SerializedBytes> + TryInto<SerializedBytes> {
     type GameMove: TryFrom<SerializedBytes> + TryInto<SerializedBytes> + Clone;
-    type GameResult: TryFrom<SerializedBytes> + TryInto<SerializedBytes>;
 
     // The minimum number of players that must participate for the game to be valid
     // Return None if there is no limit
@@ -35,5 +34,5 @@ pub trait TurnBasedGame: TryFrom<SerializedBytes> + TryInto<SerializedBytes> {
     ) -> ExternResult<()>;
 
     // Gets the outcome for the game
-    fn outcome(&self, players: Vec<AgentPubKeyB64>) -> GameOutcome<Self::GameResult>;
+    fn status(&self, players: Vec<AgentPubKeyB64>) -> GameStatus;
 }
