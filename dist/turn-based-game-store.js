@@ -57,6 +57,8 @@ export class TurnBasedGameStore {
         const opponents = Object.values(myCurrentGames).map(game => this.opponent(game));
         await this.profilesStore.fetchAgentsProfiles(opponents);
         __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            // TODO: fix when we fetch more games other than our own
+            games = {};
             for (const [hash, game] of Object.entries(myCurrentGames)) {
                 games[hash] = {
                     entry: game,
