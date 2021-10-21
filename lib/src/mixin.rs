@@ -1,5 +1,5 @@
-use hdk::prelude::*;
 use hdk::prelude::holo_hash::*;
+use hdk::prelude::*;
 
 use crate::TurnBasedGame;
 
@@ -7,6 +7,7 @@ pub fn init_turn_based_games() -> ExternResult<InitCallbackResult> {
     // grant unrestricted access to accept_cap_claim so other agents can send us claims
     let mut functions: GrantedFunctions = BTreeSet::new();
     functions.insert((zome_info()?.zome_name, "recv_remote_signal".into()));
+    functions.insert((zome_info()?.zome_name, "notify_remove_my_current_game".into()));
     create_cap_grant(CapGrantEntry {
         tag: "".into(),
         // empty access converts to unrestricted
@@ -48,6 +49,11 @@ macro_rules! mixin_turn_based_game {
         #[hdk_extern]
         fn get_game_moves(game_hash: EntryHashB64) -> ExternResult<Vec<$crate::MoveInfo>> {
             $crate::get_game_moves(game_hash.into())
+        }
+
+        #[hdk_extern]
+        fn notify_remove_my_current_game(game_hash: EntryHashB64) -> ExternResult<()> {
+            $crate::remove_my_current_game(game_hash.into())
         }
 
         #[hdk_extern]

@@ -84,7 +84,7 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   t.ok(result);
   await sleep(4000);
 
-  const currentGames = await getMyCurrentGames(alice)();
+  let currentGames = await getMyCurrentGames(alice)();
   t.equal(Object.keys(currentGames).length, 1);
 
   let gameAddress = result;
@@ -142,12 +142,11 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   t.deepEqual(result, 0);
 
   result = await getState(alice)(gameAddress);
-  t.deepEqual(
-    result.player_1[1],
+  t.deepEqual(result.player_1[1], [
     { x: 0, y: 0 },
     { x: 0, y: 1 },
-    { x: 0, y: 2 }
-  );
+    { x: 0, y: 2 },
+  ]);
   t.deepEqual(result.player_2[1], [
     { x: 1, y: 0 },
     { x: 1, y: 1 },
@@ -160,6 +159,14 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   } catch (e) {
     t.ok(true);
   }
+
+  await bob.call("tictactoe", "remove_current_game", gameAddress);
+
+  // We test first alice because it should be immediate
+  currentGames = await getMyCurrentGames(alice)();
+  t.equal(Object.keys(currentGames).length, 0);
+  currentGames = await getMyCurrentGames(bob)();
+  t.equal(Object.keys(currentGames).length, 0);
 });
 
 orchestrator.run();

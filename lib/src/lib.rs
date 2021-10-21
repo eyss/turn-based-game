@@ -6,7 +6,7 @@ mod turn_based_game;
 
 mod mixin;
 
-pub use current_games::{get_my_current_games, remove_current_game};
+pub use current_games::{get_my_current_games, remove_my_current_game, remove_current_game};
 pub use game::{
     create_game, get_game, get_game_state, validate_game_entry, GameEntry,
 };
