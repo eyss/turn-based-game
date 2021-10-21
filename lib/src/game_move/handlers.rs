@@ -4,7 +4,7 @@ use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use crate::{
-    game::{get_game, get_game_state, GameEntry},
+    game::{get_game_state, GameEntry},
     signal::{self, SignalPayload},
     turn_based_game::TurnBasedGame,
 };
@@ -22,7 +22,6 @@ pub fn create_move<G: TurnBasedGame>(
     previous_move_hash: Option<HeaderHashB64>,
     game_move: G::GameMove,
 ) -> ExternResult<HeaderHashB64> {
-    let game: GameEntry = get_game(game_hash.clone())?;
     let mut game_state: G = get_game_state(game_hash.clone())?;
 
     let move_bytes: SerializedBytes = game_move
@@ -34,7 +33,6 @@ pub fn create_move<G: TurnBasedGame>(
         &mut game_state,
         game_move,
         agent_info()?.agent_latest_pubkey.into(),
-        game.players,
     )?;
 
     let game_state_bytes: SerializedBytes = game_state.try_into().or(Err(WasmError::Guest(

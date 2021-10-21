@@ -3,7 +3,7 @@ use hdk::prelude::*;
 
 use super::GameMoveEntry;
 use crate::game::{apply_move, GameEntry};
-use crate::turn_based_game::{TurnBasedGame, GameStatus};
+use crate::turn_based_game::{GameStatus, TurnBasedGame};
 
 /**
 * Validates the move, getting the game
@@ -65,13 +65,13 @@ pub fn validate_game_move_entry<G: TurnBasedGame>(
 
         // Get the outcome of the game
 
-        if let GameStatus::Finished = previous_game_state.status(game.players.clone()) {
+        if let GameStatus::Finished = previous_game_state.status() {
             return Err(WasmError::Guest(format!(
                 "Game is already finished: cannot make any more moves",
             )));
         }
 
-        apply_move(&mut previous_game_state, &game, &move_entry)?;
+        apply_move(&mut previous_game_state, &move_entry)?;
 
         Ok(ValidateCallbackResult::Valid)
     } else {

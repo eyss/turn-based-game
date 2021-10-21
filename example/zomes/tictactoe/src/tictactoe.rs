@@ -6,8 +6,8 @@ pub const BOARD_SIZE: usize = 3;
 
 #[derive(Clone, Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct TicTacToe {
-    pub player_1: Vec<Piece>,
-    pub player_2: Vec<Piece>,
+    pub player_1: (AgentPubKey, Vec<Piece>),
+    pub player_2: (AgentPubKey, Vec<Piece>),
     pub player_resigned: Option<AgentPubKeyB64>,
 }
 
@@ -55,28 +55,23 @@ impl TurnBasedGame for TicTacToe {
         Some(2)
     }
 
-    fn initial(_players: Vec<AgentPubKeyB64>) -> Self {
+    fn initial(players: Vec<AgentPubKeyB64>) -> Self {
         TicTacToe {
-            player_1: vec![],
-            player_2: vec![],
+            player_1: (players[0].clone().into(), vec![]),
+            player_2: (players[1].clone().into(), vec![]),
             player_resigned: None,
         }
     }
 
-    fn apply_move(
-        &mut self,
-        game_move: TicTacToeMove,
-        author: AgentPubKeyB64,
-        players: Vec<AgentPubKeyB64>,
-    ) -> ExternResult<()> {
+    fn apply_move(&mut self, game_move: TicTacToeMove, author: AgentPubKeyB64) -> ExternResult<()> {
         match game_move {
             TicTacToeMove::Place(piece) => {
                 piece.is_in_bounds()?;
                 piece.is_empty(&self)?;
 
-                match author.eq(&players[0]) {
-                    true => self.player_1.push(piece.clone()),
-                    false => self.player_2.push(piece.clone()),
+                match author.eq(&self.player_1.0.clone().into()) {
+                    true => self.player_1.1.push(piece.clone()),
+                    false => self.player_2.1.push(piece.clone()),
                 }
             }
             TicTacToeMove::Resign => self.player_resigned = Some(author),
@@ -85,7 +80,7 @@ impl TurnBasedGame for TicTacToe {
         Ok(())
     }
 
-    fn status(&self, _players: Vec<AgentPubKeyB64>) -> GameStatus {
+    fn status(&self) -> GameStatus {
         if let Some(_) = self.player_resigned.clone() {
             return GameStatus::Finished;
         }
@@ -100,33 +95,13 @@ impl TurnBasedGame for TicTacToe {
 impl TicTacToe {
     pub fn to_dense(&self) -> [[u8; 8]; 8] {
         let mut board = [[0u8; 8]; 8];
-        self.player_1.iter().for_each(|piece| {
+        self.player_1.1.iter().for_each(|piece| {
             board[piece.x][piece.y] = 1;
         });
-        self.player_2.iter().for_each(|piece| {
+        self.player_2.1.iter().for_each(|piece| {
             board[piece.x][piece.y] = 2;
         });
         board
-    }
-
-    pub fn _from_dense(board: [[u8; 8]; 8]) -> Self {
-        let mut player_1_pieces = Vec::new();
-        let mut player_2_pieces = Vec::new();
-        board.iter().enumerate().for_each(|(x, row)| {
-            row.iter().enumerate().for_each(|(y, square)| {
-                if *square == 1 {
-                    player_1_pieces.push(Piece { x, y });
-                } else if *square == 2 {
-                    player_2_pieces.push(Piece { x, y });
-                }
-            })
-        });
-
-        TicTacToe {
-            player_1: player_1_pieces,
-            player_2: player_2_pieces,
-            player_resigned: None,
-        }
     }
 
     pub fn winner(&self) -> Option<u8> {

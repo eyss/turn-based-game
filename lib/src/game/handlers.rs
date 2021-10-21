@@ -72,24 +72,19 @@ pub(crate) fn build_game_state<G: TurnBasedGame>(
     let mut game_state = G::initial(game_entry.players.clone());
 
     for (_index, game_move) in moves.iter().enumerate() {
-        apply_move(&mut game_state, &game_entry, game_move)?;
+        apply_move(&mut game_state, game_move)?;
     }
     return Ok(game_state);
 }
 
 pub(crate) fn apply_move<G: TurnBasedGame>(
     game_state: &mut G,
-    game_entry: &GameEntry,
     game_move: &GameMoveEntry,
 ) -> ExternResult<()> {
     let move_content = G::GameMove::try_from(game_move.game_move.clone())
         .or(Err(WasmError::Guest("Couldnt't convert game move".into())))?;
 
-    game_state.apply_move(
-        move_content,
-        game_move.author_pub_key.clone(),
-        game_entry.players.clone(),
-    )?;
+    game_state.apply_move(move_content, game_move.author_pub_key.clone())?;
 
     Ok(())
 }
