@@ -55,6 +55,8 @@ export class TurnBasedGameStore<M> {
           signal.data.payload.header_hash,
           signal.data.payload.game_move_entry
         );
+      } else if (signal.data.payload.type === 'RemovedCurrentGame') {
+        this.handleRemovedCurrentGame(signal.data.payload.game_hash);
       }
     });
   }
@@ -225,6 +227,15 @@ export class TurnBasedGameStore<M> {
 
       return games;
     });
+  }
+
+  private async handleRemovedCurrentGame(gameHash: EntryHashB64) {
+    // TODO: fix when we are not only storing our games
+    /*     this.#gamesByEntryHash.update(games => {
+      delete games[gameHash];
+      return games;
+    });
+ */
   }
 
   private decodeMove(move: GameMoveEntry<any>): GameMoveEntry<M> {

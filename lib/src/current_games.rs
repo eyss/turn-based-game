@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
-use crate::{get_game, GameEntry};
+use crate::{GameEntry, get_game, signal::SignalPayload};
 
 pub fn get_my_current_games() -> ExternResult<BTreeMap<EntryHashB64, GameEntry>> {
     get_current_games_for(agent_info()?.agent_initial_pubkey)
@@ -62,7 +62,13 @@ pub fn remove_current_game(game_hash: EntryHashB64) -> ExternResult<()> {
 pub fn remove_my_current_game(game_hash: EntryHash) -> ExternResult<()> {
     let my_pub_key = agent_info()?.agent_latest_pubkey;
 
-    remove_current_game_for_agent(game_hash, my_pub_key)
+    remove_current_game_for_agent(game_hash.clone(), my_pub_key)?;
+
+    emit_signal(SignalPayload::RemovedCurrentGame {
+        game_hash: game_hash.into(),
+    })?;
+
+    Ok(())
 }
 
 fn remove_current_game_for_agent(

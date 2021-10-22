@@ -11,6 +11,9 @@ pub enum SignalPayload {
         game_entry: GameEntry,
     },
     NewMove(MoveInfo),
+    RemovedCurrentGame {
+        game_hash: EntryHashB64,
+    },
 }
 
 /**
