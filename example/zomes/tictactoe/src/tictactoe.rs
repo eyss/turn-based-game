@@ -63,21 +63,27 @@ impl TurnBasedGame for TicTacToe {
         }
     }
 
-    fn apply_move(&mut self, game_move: TicTacToeMove, author: AgentPubKeyB64) -> ExternResult<()> {
+    fn apply_move(
+        self,
+        game_move: TicTacToeMove,
+        author: AgentPubKeyB64,
+    ) -> ExternResult<TicTacToe> {
+        let mut game = self.clone();
+
         match game_move {
             TicTacToeMove::Place(piece) => {
                 piece.is_in_bounds()?;
                 piece.is_empty(&self)?;
 
                 match author.eq(&self.player_1.0.clone().into()) {
-                    true => self.player_1.1.push(piece.clone()),
-                    false => self.player_2.1.push(piece.clone()),
+                    true => game.player_1.1.push(piece.clone()),
+                    false => game.player_2.1.push(piece.clone()),
                 }
             }
-            TicTacToeMove::Resign => self.player_resigned = Some(author),
+            TicTacToeMove::Resign => game.player_resigned = Some(author),
         }
 
-        Ok(())
+        Ok(game)
     }
 
     fn status(&self) -> GameStatus {

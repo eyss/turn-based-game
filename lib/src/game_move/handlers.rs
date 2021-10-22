@@ -22,20 +22,20 @@ pub fn create_move<G: TurnBasedGame>(
     previous_move_hash: Option<HeaderHashB64>,
     game_move: G::GameMove,
 ) -> ExternResult<HeaderHashB64> {
-    let mut game_state: G = get_game_state(game_hash.clone())?;
+    let game_state: G = get_game_state(game_hash.clone())?;
 
     let move_bytes: SerializedBytes = game_move
         .clone()
         .try_into()
         .or(Err(WasmError::Guest("Couldn't serialize game move".into())))?;
 
-    G::apply_move(
-        &mut game_state,
+    let new_game_state = G::apply_move(
+        game_state,
         game_move,
         agent_info()?.agent_latest_pubkey.into(),
     )?;
 
-    let game_state_bytes: SerializedBytes = game_state.try_into().or(Err(WasmError::Guest(
+    let game_state_bytes: SerializedBytes = new_game_state.try_into().or(Err(WasmError::Guest(
         "Couldn't serialize game state".into(),
     )))?;
 

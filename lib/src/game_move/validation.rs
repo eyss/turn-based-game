@@ -71,7 +71,17 @@ pub fn validate_game_move_entry<G: TurnBasedGame>(
             )));
         }
 
-        apply_move(&mut previous_game_state, &move_entry)?;
+        let new_game_state = apply_move(previous_game_state, &move_entry)?;
+
+        let new_game_state_bytes: SerializedBytes = new_game_state.try_into().or(Err(
+            WasmError::Guest("Error serializing new game state".into()),
+        ))?;
+
+        if !move_entry.resulting_game_state.eq(&new_game_state_bytes) {
+            return Ok(ValidateCallbackResult::Invalid(
+                "The resulting game state for this move is not the actual correct one".into(),
+            ));
+        }
 
         Ok(ValidateCallbackResult::Valid)
     } else {

@@ -95,6 +95,8 @@ export class TurnBasedGameStore<M> {
     await this.profilesStore.fetchAgentsProfiles(opponents);
 
     this.#gamesByEntryHash.update(games => {
+      // TODO: fix when we fetch more games other than our own
+      games = {};
       for (const [hash, game] of Object.entries(myCurrentGames)) {
         games[hash] = {
           entry: game,

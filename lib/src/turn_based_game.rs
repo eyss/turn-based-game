@@ -26,8 +26,7 @@ pub trait TurnBasedGame: TryFrom<SerializedBytes> + TryInto<SerializedBytes> {
 
     // Applies the move to the game object, transforming it
     // If the move is invalid, it should return an error
-    fn apply_move(&mut self, game_move: Self::GameMove, author: AgentPubKeyB64)
-        -> ExternResult<()>;
+    fn apply_move(self, game_move: Self::GameMove, author: AgentPubKeyB64) -> ExternResult<Self>;
 
     // Gets the status for the game
     fn status(&self) -> GameStatus;
