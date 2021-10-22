@@ -4,12 +4,11 @@ use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use crate::{
-    game::{get_game_state, GameEntry},
+    game::{build_game_state, get_game, verify_we_see_previous_move_hash},
+    game_move::{GameMoveEntry, MoveInfo},
     signal::{self, SignalPayload},
     turn_based_game::TurnBasedGame,
 };
-
-use super::{GameMoveEntry, MoveInfo};
 
 /** Public handlers */
 
@@ -22,7 +21,13 @@ pub fn create_move<G: TurnBasedGame>(
     previous_move_hash: Option<HeaderHashB64>,
     game_move: G::GameMove,
 ) -> ExternResult<HeaderHashB64> {
-    let game_state: G = get_game_state(game_hash.clone())?;
+    let moves = get_moves_entries(game_hash.clone())?;
+    verify_we_see_previous_move_hash(&moves, previous_move_hash.clone())?;
+
+    let game = get_game(game_hash.clone())?;
+    let only_moves: Vec<GameMoveEntry> = moves.iter().map(|m| m.1.clone()).collect();
+
+    let game_state = build_game_state::<G>(&game, &only_moves)?;
 
     let move_bytes: SerializedBytes = game_move
         .clone()
@@ -58,14 +63,6 @@ pub fn create_move<G: TurnBasedGame>(
     )?;
 
     // Sends the newly created move to all opponents of the game
-
-    let element = get(EntryHash::from(game_hash), GetOptions::default())?
-        .ok_or(WasmError::Guest("Could not get game entry".into()))?;
-
-    let game: GameEntry = element
-        .entry()
-        .to_app_option()?
-        .ok_or(WasmError::Guest("Failed to convert game entry".into()))?;
     let signal = SignalPayload::NewMove(MoveInfo {
         header_hash: header_hash.clone().into(),
         game_move_entry: game_move,

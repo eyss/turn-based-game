@@ -113,6 +113,15 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
 
   lastMoveHash = await createMove(bob)(gameAddress, null, 0, 0);
   t.ok(lastMoveHash);
+
+  try {
+    // We can't do our next move until we don't see the previous move
+    lastMoveHash = await createMove(bob)(gameAddress, null, 0, 0);
+    t.ok(false);
+  } catch (e) {
+    t.ok(true);
+  }
+
   await sleep(4000);
 
   try {

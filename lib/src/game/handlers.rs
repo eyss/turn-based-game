@@ -1,6 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use hdk::prelude::holo_hash::{AgentPubKeyB64, EntryHashB64};
 use hdk::prelude::*;
+use holo_hash::HeaderHashB64;
 
 use crate::current_games;
 use crate::{
@@ -53,6 +54,24 @@ pub fn get_game_state<G: TurnBasedGame>(game_hash: EntryHashB64) -> ExternResult
     let only_moves: Vec<GameMoveEntry> = moves.iter().map(|m| m.1.clone()).collect();
 
     build_game_state::<G>(&game, &only_moves)
+}
+
+pub(crate) fn verify_we_see_previous_move_hash(
+    fetched_moves: &Vec<(HeaderHashB64, GameMoveEntry)>,
+    previous_move_hash: Option<HeaderHashB64>,
+) -> ExternResult<()> {
+    // If we can't see the previous move hash yet, return error for the UI to retry
+    match (fetched_moves.last(), previous_move_hash) {
+        (None, None) => Ok(()),
+        (Some((fetched_header_hash, _)), Some(required_header_hash))
+            if fetched_header_hash.eq(&required_header_hash) =>
+        {
+            Ok(())
+        }
+        _ => Err(WasmError::Guest(
+            "Cannot make move: can't fetch the previous move hash yet".into(),
+        )),
+    }
 }
 
 pub fn get_game(game_hash: EntryHashB64) -> ExternResult<GameEntry> {
