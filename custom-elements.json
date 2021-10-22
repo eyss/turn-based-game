@@ -422,6 +422,18 @@
               }
             }
           ]
+        },
+        {
+          "kind": "function",
+          "name": "sleep",
+          "parameters": [
+            {
+              "name": "ms",
+              "type": {
+                "text": "number"
+              }
+            }
+          ]
         }
       ],
       "exports": [
@@ -430,6 +442,14 @@
           "name": "headerTimestamp",
           "declaration": {
             "name": "headerTimestamp",
+            "module": "src/utils.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "sleep",
+          "declaration": {
+            "name": "sleep",
             "module": "src/utils.ts"
           }
         }

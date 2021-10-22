@@ -3,6 +3,7 @@ import { __classPrivateFieldGet } from "tslib";
 import { serializeHash, } from '@holochain-open-dev/core-types';
 import { decode } from '@msgpack/msgpack';
 import { derived, get, writable } from 'svelte/store';
+import { sleep } from './utils';
 export class TurnBasedGameStore {
     constructor(turnBasedGameService, profilesStore) {
         this.turnBasedGameService = turnBasedGameService;
@@ -91,9 +92,29 @@ export class TurnBasedGameStore {
             games[gameHash].moves.push(m);
             return games;
         });
-        const header_hash = await this.turnBasedGameService.makeMove(gameHash, previousMoveHash, move);
+        let header_hash;
+        const numRetries = 3;
+        let retryCount = 0;
+        while (!header_hash && retryCount < numRetries) {
+            try {
+                header_hash = await this.turnBasedGameService.makeMove(gameHash, previousMoveHash, move);
+            }
+            catch (e) {
+                // Retry if we can't see previous move hash yet
+                if (JSON.stringify(e).includes("can't fetch the previous move hash yet")) {
+                    await sleep(1000);
+                }
+                else {
+                    throw e;
+                }
+            }
+            retryCount += 1;
+        }
+        if (!header_hash)
+            throw new Error("Could not make the move since we don't see the previous move from our opponent");
         __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
-            games[gameHash].moves[newMoveIndex].header_hash = header_hash;
+            games[gameHash].moves[newMoveIndex].header_hash =
+                header_hash;
             return games;
         });
         return header_hash;

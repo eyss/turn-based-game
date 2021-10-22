@@ -10,6 +10,7 @@ import { decode } from '@msgpack/msgpack';
 import { derived, get, writable, Writable } from 'svelte/store';
 import { TurnBasedGameService } from './turn-based-game-service';
 import { GameEntry, GameMoveEntry, MoveInfo } from './types';
+import { sleep } from './utils';
 
 export interface GameState<M> {
   entry: GameEntry;
@@ -136,14 +137,39 @@ export class TurnBasedGameStore<M> {
       return games;
     });
 
-    const header_hash = await this.turnBasedGameService.makeMove(
-      gameHash,
-      previousMoveHash,
-      move
-    );
+    let header_hash: HeaderHashB64 | undefined;
+
+    const numRetries = 3;
+    let retryCount = 0;
+
+    while (!header_hash && retryCount < numRetries) {
+      try {
+        header_hash = await this.turnBasedGameService.makeMove(
+          gameHash,
+          previousMoveHash,
+          move
+        );
+      } catch (e) {
+        // Retry if we can't see previous move hash yet
+        if (
+          JSON.stringify(e).includes("can't fetch the previous move hash yet")
+        ) {
+          await sleep(1000);
+        } else {
+          throw e;
+        }
+      }
+      retryCount += 1;
+    }
+
+    if (!header_hash)
+      throw new Error(
+        "Could not make the move since we don't see the previous move from our opponent"
+      );
 
     this.#gamesByEntryHash.update(games => {
-      games[gameHash].moves[newMoveIndex].header_hash = header_hash;
+      games[gameHash].moves[newMoveIndex].header_hash =
+        header_hash as HeaderHashB64;
       return games;
     });
 
