@@ -137,7 +137,7 @@ export class TurnBasedGameStore<M> {
       return games;
     });
 
-    let header_hash: HeaderHashB64 | undefined = undefined;
+    let header_hash: HeaderHashB64 | undefined;
 
     const numRetries = 3;
     let retryCount = 0;

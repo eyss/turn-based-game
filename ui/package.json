@@ -63,6 +63,7 @@
       "@typescript-eslint"
     ],
     "rules": {
+      "no-await-in-loop": "off",
       "no-param-reassign": "off",
       "no-empty-function": "off",
       "no-shadow": "off",
