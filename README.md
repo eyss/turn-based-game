@@ -137,38 +137,7 @@ fn create_game(rival: AgentPubKeyB64) -> ExternResult<EntryHashB64> {
 
 The order of the players in the vector will determine the order in which they have to move.
 
-### 2. Make a move
-
-To create a move, call the `create_move` function:
-
-```rust
-#[derive(Serialize, Deserialize, Debug)]
-struct PlacePieceInput {
-    game_hash: EntryHashB64,
-    previous_move_hash: Option<EntryHashB64>,
-    x: usize,
-    y: usize,
-}
-#[hdk_extern]
-fn place_piece(
-    PlacePieceInput {
-        game_hash,
-        previous_move_hash,
-        x,
-        y,
-    }: PlacePieceInput,
-) -> ExternResult<EntryHashB64> {
-    let game_move = TicTacToeMove::Place(Piece { x, y });
-    let move_hash = hc_mixin_turn_based_game::create_move(
-        game_hash,
-        previous_move_hash,
-        game_move,
-    )?;
-    Ok(move_hash)
-}
-```
-
-### 3. Get game state
+### 2. Get game state
 
 To get the game entry, call `get_game` :
 
