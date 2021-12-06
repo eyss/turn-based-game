@@ -2,7 +2,7 @@
 manifest_version: "1"
 name: example-turn-based-game
 description: ~
-slots:
+roles:
 
   - id: example-turn-based-game
     provisioning:

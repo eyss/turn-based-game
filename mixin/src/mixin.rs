@@ -6,8 +6,8 @@ use crate::TurnBasedGame;
 pub fn init_turn_based_games() -> ExternResult<InitCallbackResult> {
     // grant unrestricted access to accept_cap_claim so other agents can send us claims
     let mut functions: GrantedFunctions = BTreeSet::new();
-    functions.insert((zome_info()?.zome_name, "recv_remote_signal".into()));
-    functions.insert((zome_info()?.zome_name, "notify_remove_my_current_game".into()));
+    functions.insert((zome_info()?.name, "recv_remote_signal".into()));
+    functions.insert((zome_info()?.name, "notify_remove_my_current_game".into()));
     create_cap_grant(CapGrantEntry {
         tag: "".into(),
         // empty access converts to unrestricted

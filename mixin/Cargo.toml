@@ -16,5 +16,5 @@ derive_more = "0"
 serde = "1"
 
 chrono = {version = "0.4.19", features = ["serde"]}
-hdk = "0.0.109"
-holo_hash = {version = "0.0.8", features = ["encoding"]}
+hdk = "0.0.115"
+holo_hash = {version = "0.0.12", features = ["encoding"]}

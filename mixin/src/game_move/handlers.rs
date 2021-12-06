@@ -97,7 +97,6 @@ pub fn get_moves_entries(
     let links = get_links(EntryHash::from(game_hash), Some(game_to_move_tag()))?;
 
     let get_inputs = links
-        .into_inner()
         .into_iter()
         .map(|link| GetInput::new(link.target.into(), GetOptions::default()))
         .collect();

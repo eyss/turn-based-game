@@ -2,7 +2,7 @@
 members = [
   "example/zomes/tictactoe",
   "example/zomes/profiles",
-  "lib",
+  "mixin",
 ]
 
 [profile.dev]

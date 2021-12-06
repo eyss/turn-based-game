@@ -36,7 +36,7 @@ pub fn remove_current_game(game_hash: EntryHashB64) -> ExternResult<()> {
     for agent in players {
         let response = call_remote(
             agent.clone().into(),
-            zome_info()?.zome_name,
+            zome_info()?.name,
             "notify_remove_my_current_game".into(),
             None,
             game_hash.clone(),
@@ -120,5 +120,5 @@ fn get_current_games_for(agent: AgentPubKey) -> ExternResult<BTreeMap<EntryHashB
 
 fn get_current_games_links(agent: AgentPubKey) -> ExternResult<Vec<Link>> {
     let links = get_links(agent.clone().into(), Some(current_games_tag()))?;
-    Ok(links.into_inner())
+    Ok(links)
 }
