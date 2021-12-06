@@ -24,8 +24,5 @@
   },
   "engines": {
     "npm": ">=7.0.0"
-  },
-  "dependencies": {
-    "@holochain-open-dev/profiles": "github:holochain-open-dev/profiles#ui-build"
   }
 }
