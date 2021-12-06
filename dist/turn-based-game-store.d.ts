@@ -22,5 +22,6 @@ export declare class TurnBasedGameStore<M> {
     fetchGameMoves(gameHash: EntryHashB64): Promise<void>;
     private handleNewGameStarted;
     private handleNewMove;
+    private handleRemovedCurrentGame;
     private decodeMove;
 }

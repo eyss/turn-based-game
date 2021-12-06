@@ -366,6 +366,19 @@
             },
             {
               "kind": "method",
+              "name": "handleRemovedCurrentGame",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "gameHash",
+                  "type": {
+                    "text": "EntryHashB64"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "decodeMove",
               "privacy": "private",
               "return": {
