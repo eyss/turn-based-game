@@ -12,6 +12,5 @@ name = "tictactoe"
 derive_more = "0"
 serde = "1"
 
-chrono = "0.4.19"
 hc_mixin_turn_based_game = {path = "../../../mixin"}
-hdk = "0.0.115"
+hdk =  {version = "0.0.120", features = ["encoding"]}
