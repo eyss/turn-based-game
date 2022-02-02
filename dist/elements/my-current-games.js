@@ -1,7 +1,7 @@
 import { __decorate } from "tslib";
 import { html, LitElement } from 'lit';
 import { state } from 'lit/decorators.js';
-import { contextProvided } from '@lit-labs/context';
+import { contextProvided } from '@holochain-open-dev/context';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { Card, List, ListItem, Icon, Button, CircularProgress, } from '@scoped-elements/material-web';
 import { StoreSubscriber } from 'lit-svelte-stores';
