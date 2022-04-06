@@ -59,6 +59,7 @@ pub fn create_move<G: TurnBasedGame>(
     create_link(
         EntryHash::from(game_hash.clone()),
         move_hash.clone(),
+        LinkType(0),
         game_to_move_tag(),
     )?;
 

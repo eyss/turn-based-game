@@ -1,4 +1,4 @@
-use hdk::prelude::holo_hash::*;
+/**use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
 
 use super::GameMoveEntry;
@@ -128,4 +128,4 @@ fn validate_it_is_authors_turn(
     }
 
     Ok(())
-}
+} **/

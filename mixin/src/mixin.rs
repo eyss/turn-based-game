@@ -61,7 +61,7 @@ macro_rules! mixin_turn_based_game {
             $crate::get_game(game_hash)
         }
 
-        #[hdk_extern]
+       /*  #[hdk_extern]
         fn validate_create_entry_game_entry(
             validate_data: ValidateData,
         ) -> ExternResult<ValidateCallbackResult> {
@@ -100,6 +100,6 @@ macro_rules! mixin_turn_based_game {
             Ok(ValidateCallbackResult::Invalid(
                 "Cannot update games".into(),
             ))
-        }
+        }*/
     };
 }

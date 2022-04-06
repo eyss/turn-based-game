@@ -14,6 +14,7 @@ pub fn add_current_game(game_hash: EntryHash, players: Vec<AgentPubKeyB64>) -> E
         create_link(
             AgentPubKey::from(agent).into(),
             game_hash.clone().into(),
+            LinkType(0),
             current_games_tag(),
         )?;
     }

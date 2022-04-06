@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+/**use std::collections::HashMap;
 
 use hdk::prelude::holo_hash::*;
 use hdk::prelude::*;
@@ -55,3 +55,4 @@ pub fn validate_game_entry<G: TurnBasedGame>(
     }
     Ok(ValidateCallbackResult::Valid)
 }
+**/
