@@ -73,31 +73,33 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
 
   let result;
   let lastMoveHash;
+  //1
   try {
     result = await createGame(alice)(aliceAddress);
     t.ok(result);
   } catch (e) {
     t.ok(result);
   }
-
+  //2
   result = await createGame(alice)(bobAddress);
   t.ok(result);
   await sleep(4000);
-
+  //3
   let currentGames = await getMyCurrentGames(alice)();
   console.log("current",currentGames)
-  t.equal(Object.keys(currentGames).length, 1);
+  t.equal(Object.keys(currentGames).length, 2);
 
+  //4
   let gameAddress = result;
-
   result = await getWinner(alice)(gameAddress);
   t.deepEqual(result, null);
-
+  //5,6,7
   result = await getState(alice)(gameAddress);
   t.deepEqual(result.player_1[1], []);
   t.deepEqual(result.player_2[1], []);
   t.deepEqual(result.player_resigned, null);
 
+  //8
   try {
     result = await createMove(alice)(gameAddress, null, 0, 0);
     console.log(result)
@@ -105,17 +107,14 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   } catch (e) {
     t.ok(true);
   }
-
+  //9
   try {
     result = await createMove(bob)(gameAddress, null, 4, 0);
     t.ok(result);
   } catch (e) {
     t.ok(true);
   }
-
-  lastMoveHash = await createMove(bob)(gameAddress, null, 0, 0);
-  t.ok(lastMoveHash);
-
+  //10
   try {
     // We can't do our next move until we don't see the previous move
     lastMoveHash = await createMove(bob)(gameAddress, null, 0, 0);
@@ -125,16 +124,20 @@ orchestrator.registerScenario("add and retrieve a book", async (s, t) => {
   }
 
   await sleep(4000);
-
+  //11
   try {
     result = await createMove(alice)(gameAddress, lastMoveHash, 0, 0);
     t.ok(result);
   } catch (e) {
     t.ok(true);
   }
-
-  lastMoveHash = await createMove(alice)(gameAddress, lastMoveHash, 1, 0);
-  t.ok(lastMoveHash);
+  //12
+  try {
+    lastMoveHash = await createMove(alice)(gameAddress, lastMoveHash, 1, 0);
+    t.ok(lastMoveHash);
+} catch (e) {
+  t.ok(true);
+}
   await sleep(4000);
 
   lastMoveHash = await createMove(bob)(gameAddress, lastMoveHash, 0, 1);
