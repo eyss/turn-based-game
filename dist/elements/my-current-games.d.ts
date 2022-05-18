@@ -8,7 +8,7 @@ declare const MyCurrentGames_base: typeof LitElement & import("@open-wc/dedupe-m
 export declare class MyCurrentGames extends MyCurrentGames_base {
     _store: TurnBasedGameStore<any>;
     loading: boolean;
-    _knownProfiles: StoreSubscriber<import("@holochain-open-dev/core-types").Dictionary<import("@holochain-open-dev/profiles").Profile>>;
+    _knownProfiles: StoreSubscriber<Record<string, import("@holochain-open-dev/profiles").Profile>>;
     _myGames: StoreSubscriber<import("@holochain-open-dev/core-types").Dictionary<import("..").GameEntry>>;
     nicknameOf(agent: AgentPubKeyB64): string;
     firstUpdated(): Promise<void>;
