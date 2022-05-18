@@ -16,13 +16,16 @@
     "prepublish": "tsc && npm run analyze -- --exclude dist",
     "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts,.html . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
-    "publish-to-branch": "npm run lint && npm run build && rm -rf node_modules && gh-pages -d ./ -b ui-build && cd .. && npm i"
+    "publish-to-branch": "npm run lint && npm run build && rm -rf node_modules && gh-pages -d ./ -b ui-build && cd .. && npm i",
+    "clean": "npm run clean:node && npm run clean:rust",
+    "clean:node": "npx rimraf node_modules && npx rimraf ui/node_modules/ && npx rimraf tests/node_modules",
+    "clean:rust": "npx rimraf .hc* && npx rimraf target && npx rimraf .cargo && npx rimraf Cargo.lock"
   },
   "dependencies": {
     "@holochain-open-dev/cell-client": "^0.3.5",
     "@holochain-open-dev/context": "^0.0.3",
     "@holochain-open-dev/core-types": "^0.2.0",
-    "@holochain-open-dev/profiles": "^0.0.13",
+    "@holochain-open-dev/profiles": "^0.0.14",
     "@msgpack/msgpack": "^2.7.2",
     "@open-wc/scoped-elements": "^2.1.1",
     "@scoped-elements/material-web": "^0.0.19",
