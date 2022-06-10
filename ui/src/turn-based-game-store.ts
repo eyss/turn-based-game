@@ -156,7 +156,6 @@ export class TurnBasedGameStore<M> {
         if (
           JSON.stringify(e).includes("can't fetch the previous move hash yet")
         ) {
-          console.log(e)
           await sleep(1000);
         } else {
           throw e;
