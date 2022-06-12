@@ -159,8 +159,16 @@ export class TurnBasedGameStore {
     }
     // TODO: fix when we are not only storing our games
     async handleRemovedCurrentGame(gameHash) {
+        //  this.#gamesByEntryHash.update(games => {
+        // delete games[gameHash];
+        // return games;
+        //  });
+        const game = await this.turnBasedGameService.getGame(gameHash);
         __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
-            delete games[gameHash];
+            games[gameHash] = {
+                entry: game,
+                moves: [],
+            };
             return games;
         });
     }
