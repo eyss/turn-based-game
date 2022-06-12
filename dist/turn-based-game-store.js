@@ -163,14 +163,14 @@ export class TurnBasedGameStore {
         // delete games[gameHash];
         // return games;
         //  });
-        const game = await this.turnBasedGameService.getGame(gameHash);
-        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
-            games[gameHash] = {
-                entry: game,
-                moves: [],
-            };
-            return games;
-        });
+        // const game = await this.turnBasedGameService.getGame(gameHash);
+        // this.#gamesByEntryHash.update(games => {
+        //   games[gameHash] = {
+        //     entry: game,
+        //    moves: [],
+        //  };
+        //  return games;
+        //  });
     }
     decodeMove(move) {
         return {

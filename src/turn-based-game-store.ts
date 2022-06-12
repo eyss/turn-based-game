@@ -235,14 +235,14 @@ export class TurnBasedGameStore<M> {
     // delete games[gameHash];
     // return games;
     //  });
-    const game = await this.turnBasedGameService.getGame(gameHash);
-    this.#gamesByEntryHash.update(games => {
-      games[gameHash] = {
-        entry: game,
-        moves: [],
-      };
-      return games;
-    });
+    // const game = await this.turnBasedGameService.getGame(gameHash);
+    // this.#gamesByEntryHash.update(games => {
+    //   games[gameHash] = {
+    //     entry: game,
+    //    moves: [],
+    //  };
+    //  return games;
+    //  });
   }
 
   private decodeMove(move: GameMoveEntry<any>): GameMoveEntry<M> {
