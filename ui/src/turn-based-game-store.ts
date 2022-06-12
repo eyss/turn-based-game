@@ -229,12 +229,20 @@ export class TurnBasedGameStore<M> {
     });
   }
 
+  // TODO: fix when we are not only storing our games
   private async handleRemovedCurrentGame(gameHash: EntryHashB64) {
-    // TODO: fix when we are not only storing our games
-      this.#gamesByEntryHash.update(games => {
-      delete games[gameHash];
-      return games;
-    });
+    //  this.#gamesByEntryHash.update(games => {
+    // delete games[gameHash];
+    // return games;
+    //  });
+    // const game = await this.turnBasedGameService.getGame(gameHash);
+    // this.#gamesByEntryHash.update(games => {
+    //   games[gameHash] = {
+    //     entry: game,
+    //    moves: [],
+    //  };
+    //  return games;
+    //  });
   }
 
   private decodeMove(move: GameMoveEntry<any>): GameMoveEntry<M> {
