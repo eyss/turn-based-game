@@ -96,7 +96,7 @@ export class TurnBasedGameStore {
             return games;
         });
         let header_hash;
-        const numRetries = 3;
+        const numRetries = 5;
         let retryCount = 0;
         while (!header_hash && retryCount < numRetries) {
             try {
@@ -157,13 +157,12 @@ export class TurnBasedGameStore {
             return games;
         });
     }
+    // TODO: fix when we are not only storing our games
     async handleRemovedCurrentGame(gameHash) {
-        // TODO: fix when we are not only storing our games
-        /*     this.#gamesByEntryHash.update(games => {
-          delete games[gameHash];
-          return games;
+        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+            delete games[gameHash];
+            return games;
         });
-     */
     }
     decodeMove(move) {
         return {

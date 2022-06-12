@@ -141,7 +141,7 @@ export class TurnBasedGameStore<M> {
 
     let header_hash: HeaderHashB64 | undefined;
 
-    const numRetries = 3;
+    const numRetries = 5;
     let retryCount = 0;
 
     while (!header_hash && retryCount < numRetries) {
@@ -229,13 +229,12 @@ export class TurnBasedGameStore<M> {
     });
   }
 
+  // TODO: fix when we are not only storing our games
   private async handleRemovedCurrentGame(gameHash: EntryHashB64) {
-    // TODO: fix when we are not only storing our games
-    /*     this.#gamesByEntryHash.update(games => {
+    this.#gamesByEntryHash.update(games => {
       delete games[gameHash];
       return games;
     });
- */
   }
 
   private decodeMove(move: GameMoveEntry<any>): GameMoveEntry<M> {
