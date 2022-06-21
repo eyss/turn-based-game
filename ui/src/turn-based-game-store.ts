@@ -166,7 +166,7 @@ export class TurnBasedGameStore<M> {
         return games;
       });
       throw new Error(
-        "Could not make the move since we don't see the previous move from our opponent"
+        "Could not make the move since we don't see the previous move from our opponent "
       );
     } else {
       this.#gamesByEntryHash.update(games => {
