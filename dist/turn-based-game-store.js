@@ -108,18 +108,29 @@ export class TurnBasedGameStore {
                     await sleep(1000);
                 }
                 else {
+                    __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+                        games[gameHash].moves.pop();
+                        return games;
+                    });
                     throw e;
                 }
             }
             retryCount += 1;
         }
-        if (!header_hash)
+        if (!header_hash) {
+            __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+                games[gameHash].moves.pop();
+                return games;
+            });
             throw new Error("Could not make the move since we don't see the previous move from our opponent");
-        __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
-            games[gameHash].moves[newMoveIndex].header_hash =
-                header_hash;
-            return games;
-        });
+        }
+        else {
+            __classPrivateFieldGet(this, _TurnBasedGameStore_gamesByEntryHash, "f").update(games => {
+                games[gameHash].moves[newMoveIndex].header_hash =
+                    header_hash;
+                return games;
+            });
+        }
         return header_hash;
     }
     async fetchGameMoves(gameHash) {
