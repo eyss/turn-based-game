@@ -141,7 +141,7 @@ export class TurnBasedGameStore<M> {
 
     let header_hash: HeaderHashB64 | undefined;
 
-    const numRetries = 5;
+    const numRetries = 10;
     let retryCount = 0;
 
     while (!header_hash && retryCount < numRetries) {
@@ -152,18 +152,9 @@ export class TurnBasedGameStore<M> {
           move
         );
       } catch (e) {
-        // Retry if we can't see previous move hash yet
-        if (
-          JSON.stringify(e).includes("can't fetch the previous move hash yet")
-        ) {
-          await sleep(1000);
-        } else {
-          this.#gamesByEntryHash.update(games => {
-            games[gameHash].moves.pop();
-            return games;
-          });
-          throw e;
-        }
+        // Retry if we can't see previous move hash yet - JSON.stringify(e).includes("can't fetch the previous move hash yet")
+        console.log(e);
+        await sleep(1000);
       }
       retryCount += 1;
     }
@@ -174,7 +165,7 @@ export class TurnBasedGameStore<M> {
         return games;
       });
       throw new Error(
-        "Could not make the move since we don't see the previous move from our opponent"
+        "Could not make the move since we don't see the previous move from our opponent "
       );
     } else {
       this.#gamesByEntryHash.update(games => {
