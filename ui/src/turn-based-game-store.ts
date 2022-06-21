@@ -158,23 +158,31 @@ export class TurnBasedGameStore<M> {
         ) {
           await sleep(1000);
         } else {
+          this.#gamesByEntryHash.update(games => {
+            games[gameHash].moves.pop()
+            return games;
+          });
           throw e;
         }
       }
       retryCount += 1;
     }
 
-    if (!header_hash)
-      throw new Error(
-        "Could not make the move since we don't see the previous move from our opponent"
-      );
-
-    this.#gamesByEntryHash.update(games => {
-      games[gameHash].moves[newMoveIndex].header_hash =
-        header_hash as HeaderHashB64;
-      return games;
-    });
-
+    if (!header_hash){
+      this.#gamesByEntryHash.update(games => {
+        games[gameHash].moves.pop()
+        return games;
+      });
+        throw new Error(
+          "Could not make the move since we don't see the previous move from our opponent"
+        );
+    } else {
+      this.#gamesByEntryHash.update(games => {
+        games[gameHash].moves[newMoveIndex].header_hash =
+          header_hash as HeaderHashB64;
+        return games;
+      });
+    }
     return header_hash;
   }
 
