@@ -32,7 +32,7 @@
     "@scoped-elements/shoelace": "^0.0.8",
     "lit": "^2.2.4",
     "lit-svelte-stores": "^0.1.10",
-    "svelte": "^3.48.0"
+    "svelte": "^3.49.0"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.5.7",
